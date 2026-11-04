@@ -1,3 +1,5 @@
+// Frontend — Owner: Vinayak Gupta (team lead)
+// Feature: Find a Stay — map view (OSM embed / Google Maps embed, pins = results).
 import React from 'react';
 import { Link } from 'react-router-dom';
 // Sprint 2 map: no JS SDK needed, so no API key is required to demo.

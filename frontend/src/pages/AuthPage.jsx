@@ -1,3 +1,5 @@
+// Frontend — Owner: Ranadhir Reddy Rikkala
+// Feature: Identity, Platform & Admin Control — register/login page.
 import React, { useState } from 'react';
 import { api } from '../api/client.js';
 // Sprint 1 (Ranadhir): register/login. Admin is seeded, not self-registered

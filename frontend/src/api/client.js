@@ -1,3 +1,5 @@
+// Frontend — Shared, no single owner (like backend routers/common.py).
+// The only place the frontend touches HTTP; every page imports from here.
 // One typed API client — the only place the frontend touches HTTP.
 // Base URL: /api in dev (Vite proxy), or VITE_API_URL in production.
 // Auth: token is stored in localStorage by App.jsx and passed explicitly

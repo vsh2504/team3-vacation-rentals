@@ -1,3 +1,5 @@
+// Frontend — Owner: Ranadhir Reddy Rikkala
+// Feature: Identity, Platform & Admin Control — approvals queue + moderation.
 import React, { useEffect, useState } from 'react';
 import { api } from '../api/client.js';
 // Sprint 2 (Ranadhir): approvals queue + moderation. API enforces ADMIN only.

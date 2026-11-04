@@ -1,3 +1,5 @@
+// Frontend — Owner: Vinayak Gupta (team lead)
+// Feature: Find a Stay — search page (filters, results, map).
 import React, { useEffect, useState } from 'react';
 import ListingCard from '../components/ListingCard.jsx';
 import MapView from '../components/MapView.jsx';
