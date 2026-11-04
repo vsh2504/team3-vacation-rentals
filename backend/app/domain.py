@@ -71,7 +71,8 @@ def is_available(listing: Listing, check_in: date, check_out: date, guests: int,
                    and overlaps(check_in, check_out, b.check_in, b.check_out) for b in existing)
 
 def price_for(listing: Listing, check_in: date, check_out: date) -> Decimal:
-    return listing.price_per_night * Decimal((check_out - check_in).days)
+    # API layer may pass a float (Pydantic); convert so Decimal * Decimal always holds.
+    return Decimal(str(listing.price_per_night)) * Decimal((check_out - check_in).days)
 
 def search_listings(listings: list[Listing], bookings: list[Booking], *,
                    check_in: date | None = None, check_out: date | None = None,
