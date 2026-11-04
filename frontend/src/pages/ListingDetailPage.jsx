@@ -24,6 +24,8 @@ export default function ListingDetailPage({ auth }) {
       <p className="card-meta">{listing.address}, {listing.city}, {listing.state} {listing.zip}</p>
       {listing.photos?.map((p, i) => <img key={i} src={p} alt={`${listing.title} photo ${i + 1}`} style={{ width: '100%', maxHeight: 260, objectFit: 'cover', borderRadius: 8, marginBottom: 8 }} />)}
       {!listing.photos?.length && <p><em>No photos yet — host photo upload (Blob) is Sprint 3.</em></p>}
+      {listing.videos?.map((v, i) => <video key={i} src={v} controls style={{ width: '100%', maxHeight: 260, borderRadius: 8, marginBottom: 8 }} />)}
+      {!listing.videos?.length && <p><em>No videos yet for this listing.</em></p>}
       <p>${listing.price_per_night}/night — up to {listing.max_guests} guests — {listing.bedrooms} bed, {listing.bathrooms} bath</p>
       <p>{listing.description}</p>
       <p>Amenities: {(listing.amenities || []).join(', ')}</p>

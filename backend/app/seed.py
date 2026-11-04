@@ -14,5 +14,5 @@ def load_seed(store):
             lat=row["lat"], lng=row["lng"], price_per_night=Decimal(str(row["price_per_night"])),
             max_guests=row["max_guests"], bedrooms=row["bedrooms"], bathrooms=row["bathrooms"],
             amenities=row["amenities"], available_times=row["available_times"],
-            status=ListingStatus(row["status"]), photos=row.get("photos", [])))
+            status=ListingStatus(row["status"]), photos=row.get("photos", []), videos=row.get("videos", [])))
     return store

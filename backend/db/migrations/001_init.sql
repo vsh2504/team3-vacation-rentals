@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS listings (
   price_per_night NUMERIC NOT NULL, max_guests INTEGER NOT NULL,
   bedrooms INTEGER NOT NULL, bathrooms INTEGER NOT NULL,
   amenities TEXT NOT NULL DEFAULT '[]', available_times TEXT NOT NULL,
-  status TEXT NOT NULL, photos TEXT NOT NULL DEFAULT '[]'
+  status TEXT NOT NULL, photos TEXT NOT NULL DEFAULT '[]', videos TEXT NOT NULL DEFAULT '[]'
 );
 CREATE TABLE IF NOT EXISTS bookings (
   id INTEGER PRIMARY KEY, listing_id INTEGER NOT NULL, customer_id INTEGER NOT NULL,

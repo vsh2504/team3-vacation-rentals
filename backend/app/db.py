@@ -45,7 +45,7 @@ listings_t = Table("listings", metadata,
     Column("lat", Numeric), Column("lng", Numeric), Column("price_per_night", Numeric),
     Column("max_guests", Integer), Column("bedrooms", Integer), Column("bathrooms", Integer),
     Column("amenities", Text), Column("available_times", String), Column("status", String),
-    Column("photos", Text))
+    Column("photos", Text), Column("videos", Text))
 
 bookings_t = Table("bookings", metadata,
     Column("id", Integer, primary_key=True), Column("listing_id", Integer),
@@ -72,7 +72,7 @@ def _row_to_listing(r):
         price_per_night=Decimal(str(r.price_per_night)), max_guests=r.max_guests, bedrooms=r.bedrooms,
         bathrooms=r.bathrooms, amenities=json.loads(r.amenities or "[]"),
         available_times=r.available_times, status=ListingStatus(r.status),
-        photos=json.loads(r.photos or "[]"))
+        photos=json.loads(r.photos or "[]"), videos=json.loads(getattr(r, "videos", None) or "[]"))
 
 def _row_to_booking(r):
     return Booking(id=r.id, listing_id=r.listing_id, customer_id=r.customer_id, check_in=r.check_in,
@@ -120,7 +120,7 @@ class SqlBackedStore(InMemoryStore):
                     zip=obj.zip, lat=obj.lat, lng=obj.lng, price_per_night=Decimal(str(obj.price_per_night)),
                     max_guests=obj.max_guests, bedrooms=obj.bedrooms, bathrooms=obj.bathrooms,
                     amenities=json.dumps(obj.amenities), available_times=obj.available_times,
-                    status=obj.status.value, photos=json.dumps(getattr(obj, "photos", []))))
+                    status=obj.status.value, photos=json.dumps(getattr(obj, "photos", [])), videos=json.dumps(getattr(obj, "videos", []))))
             elif isinstance(obj, Booking):
                 _upsert(conn, bookings_t, dict(id=obj.id, listing_id=obj.listing_id, customer_id=obj.customer_id,
                     check_in=obj.check_in, check_out=obj.check_out, guests=obj.guests,

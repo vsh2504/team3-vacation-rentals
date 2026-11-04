@@ -26,7 +26,7 @@ def _listing_out(li, store, today):
             "max_guests": li.max_guests, "bedrooms": li.bedrooms, "bathrooms": li.bathrooms,
             "amenities": li.amenities, "available_times": li.available_times,
             "status": li.status.value, "booked_today": booked_today(li.id, store.bookings, today),
-            "photos": getattr(li, "photos", [])}
+            "photos": getattr(li, "photos", []), "videos": getattr(li, "videos", [])}
 
 @router.get("/listings/search")
 def search(check_in: date | None = None, check_out: date | None = None, guests: int = 1,

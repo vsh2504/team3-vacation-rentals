@@ -41,6 +41,7 @@ class Listing:
     available_times: str = "Check-in 3pm, check-out 11am; available year-round unless booked"
     status: ListingStatus = ListingStatus.PENDING_APPROVAL
     photos: list[str] = field(default_factory=list)  # Sprint 2: seed photos; host upload (Blob) in Sprint 3
+    videos: list[str] = field(default_factory=list)  # PR 14: seed demo videos; same Blob path as photos
 
 @dataclass
 class Booking:
