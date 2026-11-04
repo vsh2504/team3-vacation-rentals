@@ -1,0 +1,20 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Domain tests (stdlib only, Week 1)
+        run: python3 -m unittest backend/tests/test_week1.py -v
+      - name: Install API deps and import check
+        run: |
+          pip install -r backend/requirements.txt
+          python3 -c "import app.main" 
+        working-directory: backend

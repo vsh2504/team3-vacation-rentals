@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: staynest
+      POSTGRES_PASSWORD: staynest-dev-only
+      POSTGRES_DB: staynest
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://staynest:staynest-dev-only@db:5432/staynest
+      JWT_SECRET: dev-only-change-in-azure-key-vault
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+  web:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+volumes:
+  pgdata:
