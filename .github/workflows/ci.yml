@@ -11,8 +11,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Domain tests (stdlib only, Week 1)
-        run: python3 backend/tests/test_week1.py -v
+      - name: All backend tests (domain + per-agent API tests, PR 14)
+        run: |
+          pip install -r backend/requirements.txt
+          python3 backend/tests/test_week1.py -v
+          python3 backend/tests/test_auth_admin.py -v
+          python3 backend/tests/test_listings_search.py -v
+          python3 backend/tests/test_bookings.py -v
+          python3 backend/tests/test_reviews_analytics.py -v
       - name: Install API deps and import check
         run: |
           pip install -r requirements.txt
