@@ -15,6 +15,6 @@ jobs:
         run: python3 backend/tests/test_week1.py -v
       - name: Install API deps and import check
         run: |
-          pip install -r backend/requirements.txt
+          pip install -r requirements.txt
           python3 -c "import app.main" 
         working-directory: backend
