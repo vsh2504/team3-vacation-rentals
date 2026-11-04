@@ -142,3 +142,23 @@ Code + API tests + UI happy path + own DevOps piece deployed +
 health check passing + rollback tested + journal row + PR reviewed by
 another feature owner. A feature without its deployment proof is not Done,
 even if its API works on localhost.
+
+## Core APIs — one named API per agent (PR 9)
+
+This is the public API surface, not just a feature bundle. Each agent
+owns the router file(s) below; the file header names the owner and the
+endpoints. Shared domain logic lives in domain.py / services.py — the
+router is what a grader, a client, and OpenAPI (/docs) see under a name.
+
+| Core API | Owner | Router file(s) | Endpoints |
+|---|---|---|---|
+| Identity & Admin API | Ranadhir Reddy Rikkala | backend/app/routers/auth.py, admin.py | POST /auth/register, POST /auth/login, GET /auth/me, POST /admin/listings/{id}/approve, POST /admin/listings/{id}/reject, DELETE /admin/listings/{id} |
+| Search & Listings API | Vinayak Gupta | backend/app/routers/listings.py | GET /listings/search, GET /listings/{id}, POST /listings, PUT /listings/{id}, DELETE /listings/{id}, GET /host/listings |
+| Booking API | Manoj | backend/app/routers/bookings.py | POST /bookings, GET /bookings/me, POST /bookings/{id}/cancel |
+| Reviews & Analytics API | Prajval Sudhir | backend/app/routers/reviews.py, analytics.py | POST /reviews, GET /listings/{id}/reviews, GET /host/analytics, GET /admin/analytics |
+
+Smoke-tested (PR 9, FastAPI TestClient): register -> login -> create
+listing (PENDING) -> admin approve -> search finds it -> book (450 for
+3 nights at 150) -> overlap 409 -> 15-day 422 -> customer calling admin
+403. All routers are mounted in backend/app/main.py; shared auth/store
+helpers live in routers/common.py and are owned by no single agent.
