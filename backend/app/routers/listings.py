@@ -15,7 +15,7 @@ from ..core.errors import ApiError, ok
 from ..domain import ListingStatus, UserRole, booked_today
 from ..schemas import ListingIn
 from ..services import ListingService
-from .common import get_current_user, get_store
+from .common import flush_store, get_current_user, get_store
 
 router = APIRouter(tags=["listings/search — Vinayak Gupta"])
 
@@ -25,7 +25,8 @@ def _listing_out(li, store, today):
             "lat": li.lat, "lng": li.lng, "price_per_night": str(li.price_per_night),
             "max_guests": li.max_guests, "bedrooms": li.bedrooms, "bathrooms": li.bathrooms,
             "amenities": li.amenities, "available_times": li.available_times,
-            "status": li.status.value, "booked_today": booked_today(li.id, store.bookings, today)}
+            "status": li.status.value, "booked_today": booked_today(li.id, store.bookings, today),
+            "photos": getattr(li, "photos", [])}
 
 @router.get("/listings/search")
 def search(check_in: date | None = None, check_out: date | None = None, guests: int = 1,
@@ -59,6 +60,7 @@ def update_listing(listing_id: int, body: ListingIn, user=Depends(get_current_us
         raise ApiError("FORBIDDEN", "Only the listing owner can edit it")
     for k, v in body.model_dump().items():
         setattr(li, k, v)
+    flush_store(store)
     return ok({"id": li.id, "status": li.status.value})
 
 @router.delete("/listings/{listing_id}")
@@ -68,7 +70,7 @@ def delete_listing(listing_id: int, user=Depends(get_current_user), store=Depend
         raise ApiError("NOT_FOUND", "Listing not found")
     if li.host_id != user.id:
         raise ApiError("FORBIDDEN", "Only the listing owner can remove it")
-    li.status = ListingStatus.REMOVED
+    li.status = ListingStatus.REMOVED; flush_store(store)
     return ok({"id": li.id, "status": li.status.value})
 
 @router.get("/host/listings")
