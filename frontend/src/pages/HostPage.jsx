@@ -28,7 +28,7 @@ export default function HostPage({ auth }) {
   return (
     <section>
       <h2>My listings</h2>
-      {listings.map(l => <article key={l.id} style={{ border: '1px solid #ddd', padding: 12, margin: '12px 0' }}>
+      {listings.map(l => <article className="page-card">
         <strong>{l.title}</strong> — {l.city} {l.zip} — ${l.price_per_night}/night — status: {l.status}{' '}
         <button onClick={() => edit(l)}>Edit</button>{' '}<button onClick={() => remove(l.id)}>Remove</button>
       </article>)}
