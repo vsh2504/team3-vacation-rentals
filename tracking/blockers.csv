@@ -1,0 +1,4 @@
+ID,Week / Day,Agent Blocked,Blocker,Blocked By,Workaround Tried Same Day,Status / Resolution
+BLK-1,Week 1 / Thu 1 Oct,Ranadheer Reddy Rikala (B),Google Maps API key / quota approval pending,Maps key creation,Leaflet + seed coordinates for local dev; mock geocode in MapView,Open in Week 1; key arrived Sprint 2 (Week 5 plan)
+BLK-2,Week 1 / Fri 2 Oct,Manoj (C),Listing status enum update in B's PR broke C's stub,Ranadheer Reddy Rikala (B) PR,"One-line stub update, re-ran tests same day",Resolved Fri 2 Oct (planned)
+BLK-3,Week 1 / Fri 2 Oct,Prajval Sudhir (D),Admin seed account needs Azure DB access,Azure DB provisioning (Sprint 3),Local Postgres admin seed,Open in Week 1; Azure DB Sprint 3

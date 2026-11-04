@@ -1,0 +1,10 @@
+Checkpoint,Sprint,Planned Remaining Points,Planned Done This Period,Notes
+Sat 3 Oct 2026,Sprint 0,111,8,"Week 1: repo, CI, contracts draft (8 pts of Sprint 0 scope)"
+Sat 10 Oct 2026,Sprint 0,98,13,"Contracts frozen, wireframes, seed plan"
+Sat 17 Oct 2026,Sprint 1,74,24,"Auth, listing CRUD, availability, review model"
+Sat 24 Oct 2026,Sprint 1,56,18,"Search, booking create, rating"
+Sat 31 Oct 2026,Sprint 2,38,18,"Maps, cancel, admin approve, role guards"
+Sat 7 Nov 2026,Sprint 2,26,12,"Integration, detail polish"
+Sat 14 Nov 2026,Sprint 3,13,13,"Analytics, photos, edge cases"
+Sat 21 Nov 2026,Sprint 3,5,8,Acceptance fixes
+Sat 28 Nov 2026,Sprint 4,0,5,"Demo hardening, README, Journal, Sheet (Demo Day Mon 30 Nov)"
