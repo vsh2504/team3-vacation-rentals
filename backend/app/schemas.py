@@ -15,6 +15,7 @@ class ListingIn(BaseModel):
     bedrooms: int; bathrooms: int; amenities: list[str] = []
     available_times: str = "Check-in 3pm, check-out 11am"
     photos: list[str] = []  # Sprint 2: host-supplied photo URLs; Blob upload in Sprint 3
+    videos: list[str] = []  # PR 14: host-supplied video URLs
 
 class BookingIn(BaseModel):
     listing_id: int; check_in: date; check_out: date; guests: int = Field(ge=1)
