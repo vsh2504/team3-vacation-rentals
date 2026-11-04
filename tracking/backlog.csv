@@ -1,33 +1,33 @@
 Key,Story ID,Summary,Role,Slice / Owner,Story Points,Priority,Sprint,Status,Acceptance Criteria
-STAY-1,US01,Customer register + login,Customer,A - Vinayak Gupta,5,High,Sprint 1,Todo,Register creates CUSTOMER; login returns JWT; wrong password 401; duplicate email 409
-STAY-2,US02,Host register + login,Host,A - Vinayak Gupta,3,High,Sprint 1,Todo,Register creates HOST; host cannot call admin endpoints (403)
-STAY-3,US03,Role-guarded UI + API,All,A - Vinayak Gupta,5,High,Sprint 2,Todo,Nav changes by role; Customer POST /listings 403
+STAY-1,US01,Customer register + login,Customer,A - Vinayak Gupta,5,High,Sprint 1,Done,Register creates CUSTOMER; login returns JWT; wrong password 401; duplicate email 409
+STAY-2,US02,Host register + login,Host,A - Vinayak Gupta,3,High,Sprint 1,Done,Register creates HOST; host cannot call admin endpoints (403)
+STAY-3,US03,Role-guarded UI + API,All,A - Vinayak Gupta,5,High,Sprint 2,Done,Nav changes by role; Customer POST /listings 403
 STAY-4,US04,CI + Docker + Azure demo env,Team,A - Vinayak Gupta,5,High,Sprint 0-1,In Progress,docker compose up runs API+DB+seed; CI green; /health on demo URL
 STAY-5,US05,Error envelope + validation,Team,A - Vinayak Gupta,3,High,Sprint 0,Done,Every error matches contracts.md section 3; field present on validation errors
-STAY-6,US06,Host add a listing,Host,B - Ranadheer Reddy Rikala,5,High,Sprint 1,Todo,"New listing PENDING_APPROVAL; in My Listings, not in search"
-STAY-7,US07,Host edit listing,Host,B - Ranadheer Reddy Rikala,5,High,Sprint 1-2,Todo,Only owner can edit; max_guests change blocks future over-guest bookings
-STAY-8,US08,Host remove a listing,Host,B - Ranadheer Reddy Rikala,2,Medium,Sprint 2,Todo,Removed leaves search; existing bookings untouched
-STAY-9,US09,Host view my listings,Host,B - Ranadheer Reddy Rikala,2,High,Sprint 1,Todo,"Only caller's listings, with status + photo + price"
-STAY-10,US10,Search by date/guests/duration/availability,Customer,B - Ranadheer Reddy Rikala,8,High,Sprint 1-2,Todo,Filters combine; 15-day search 422; guests > max excluded
-STAY-11,US11,Search by city/state/zip + Maps address,Customer,B - Ranadheer Reddy Rikala,5,High,Sprint 2,Todo,Zip returns only that zip; address geocodes and pins results
-STAY-12,US12,"Listing detail (photos, amenities, cost, rating, # booked today)",Customer,B - Ranadheer Reddy Rikala,5,High,Sprint 2-3,Todo,All fields shown; # booked today per contracts; Book disabled when unavailable
-STAY-13,US13,View locations on Google Maps,Customer,B - Ranadheer Reddy Rikala,3,Medium,Sprint 2,Todo,Map pins = search results; click pin opens listing
-STAY-14,US14,Book a stay,Customer,C - Manoj,8,High,Sprint 1-2,Todo,"CONFIRMED + correct total_price; overlap 409, no booking created"
-STAY-15,US15,View my bookings,Customer,C - Manoj,3,High,Sprint 2,Todo,Only caller's bookings; past + upcoming separated
-STAY-16,US16,Cancel a booking,Customer,C - Manoj,5,High,Sprint 2,Todo,CONFIRMED -> CANCELLED; dates free again; other user's booking 403
-STAY-17,US17,Availability check (service-level),Customer,C - Manoj,5,High,Sprint 1,In Progress,"Overlap, 14-day, guest, available_times tested in isolation"
-STAY-18,US18,Review + rate a past booking,Customer,D - Prajval Sudhir,5,High,Sprint 1-2,Todo,COMPLETED only; rating 1-5; second review 409; upcoming 422
-STAY-19,US19,See reviews + aggregate rating,Customer,D - Prajval Sudhir,3,Medium,Sprint 2,Todo,Average updates after review; list shows reviewer + date
-STAY-20,US20,"Host analytics (my listings, by zip, 30/60/90)",Host,D - Prajval Sudhir,8,High,Sprint 3,Todo,days 30/60/90 work; zip narrows; Host A never sees Host B
-STAY-21,US21,Admin approve new rentals,Admin,D - Prajval Sudhir,5,High,Sprint 2,Todo,PENDING -> APPROVED appears in search; REJECTED does not
-STAY-22,US22,Admin remove incomplete/inaccurate listings,Admin,D - Prajval Sudhir,3,High,Sprint 2-3,Todo,Removed leaves search; reason logged; host sees REMOVED
-STAY-23,US23,"Platform analytics (by zip, 30/60/90)",Admin,D - Prajval Sudhir,5,High,Sprint 3,Todo,Platform totals = sum of hosts; zip breakdown matches period
+STAY-6,US06,Host add a listing,Host,B - Ranadheer Reddy Rikala,5,High,Sprint 1,Done,"New listing PENDING_APPROVAL; in My Listings, not in search"
+STAY-7,US07,Host edit listing,Host,B - Ranadheer Reddy Rikala,5,High,Sprint 1-2,Done,Only owner can edit; max_guests change blocks future over-guest bookings
+STAY-8,US08,Host remove a listing,Host,B - Ranadheer Reddy Rikala,2,Medium,Sprint 2,Done,Removed leaves search; existing bookings untouched
+STAY-9,US09,Host view my listings,Host,B - Ranadheer Reddy Rikala,2,High,Sprint 1,Done,"Only caller's listings, with status + photo + price"
+STAY-10,US10,Search by date/guests/duration/availability,Customer,B - Ranadheer Reddy Rikala,8,High,Sprint 1-2,Done,Filters combine; 15-day search 422; guests > max excluded
+STAY-11,US11,Search by city/state/zip + Maps address,Customer,B - Ranadheer Reddy Rikala,5,High,Sprint 2,Done,Zip returns only that zip; address geocodes and pins results
+STAY-12,US12,"Listing detail (photos, amenities, cost, rating, # booked today)",Customer,B - Ranadheer Reddy Rikala,5,High,Sprint 2-3,Done,All fields shown; # booked today per contracts; Book disabled when unavailable
+STAY-13,US13,View locations on Google Maps,Customer,B - Ranadheer Reddy Rikala,3,Medium,Sprint 2,Done,Map pins = search results; click pin opens listing
+STAY-14,US14,Book a stay,Customer,C - Manoj,8,High,Sprint 1-2,Done,"CONFIRMED + correct total_price; overlap 409, no booking created"
+STAY-15,US15,View my bookings,Customer,C - Manoj,3,High,Sprint 2,Done,Only caller's bookings; past + upcoming separated
+STAY-16,US16,Cancel a booking,Customer,C - Manoj,5,High,Sprint 2,Done,CONFIRMED -> CANCELLED; dates free again; other user's booking 403
+STAY-17,US17,Availability check (service-level),Customer,C - Manoj,5,High,Sprint 1,Done,"Overlap, 14-day, guest, available_times tested in isolation"
+STAY-18,US18,Review + rate a past booking,Customer,D - Prajval Sudhir,5,High,Sprint 1-2,Done,COMPLETED only; rating 1-5; second review 409; upcoming 422
+STAY-19,US19,See reviews + aggregate rating,Customer,D - Prajval Sudhir,3,Medium,Sprint 2,Done,Average updates after review; list shows reviewer + date
+STAY-20,US20,"Host analytics (my listings, by zip, 30/60/90)",Host,D - Prajval Sudhir,8,High,Sprint 3,Done,days 30/60/90 work; zip narrows; Host A never sees Host B
+STAY-21,US21,Admin approve new rentals,Admin,D - Prajval Sudhir,5,High,Sprint 2,Done,PENDING -> APPROVED appears in search; REJECTED does not
+STAY-22,US22,Admin remove incomplete/inaccurate listings,Admin,D - Prajval Sudhir,3,High,Sprint 2-3,Done,Removed leaves search; reason logged; host sees REMOVED
+STAY-23,US23,"Platform analytics (by zip, 30/60/90)",Admin,D - Prajval Sudhir,5,High,Sprint 3,Done,Platform totals = sum of hosts; zip breakdown matches period
 STAY-24,US24,"Seed data (24 listings, 6 zips)",Team,A - Vinayak Gupta,3,High,Sprint 0-1,Done,Seed idempotent; demo paths have data
 STAY-25,US25,Wireframes for every screen,Team,B - Ranadheer Reddy Rikala / D - Prajval Sudhir,3,High,Sprint 0,Done,18 screens in docs/wireframes.md
 STAY-26,US26,Component + deployment diagrams,Team,A - Vinayak Gupta,2,Medium,Sprint 0-3,Done,Diagrams in docs/architecture.md; match actual Azure resources in Sprint 3
 STAY-27,US27,Acceptance test run on deployed URL,Team,C - Manoj / D - Prajval Sudhir,3,High,Sprint 3,Todo,Acceptance matrix all pass; failures become Sprint 4 stories
-STAY-28,US28,Demo script + README + Journal + Sheet finalised,Team,All (rotated),2,High,Sprint 4,Todo,"README has company, 4 names, contributions, Journal link, Sheet link; demo rehearsed twice"
-STAY-29,US29,"Deploy Find a Stay: frontend, CDN, Maps key, search health check",Customer,Vinayak Gupta,5,High,Sprint 2-3,Todo,Frontend deployed to demo env; search smoke test passes; rollback = previous frontend build
-STAY-30,US30,"Deploy Platform: LB, VMSS, CI, Key Vault, deploy/rollback",Team,Ranadhir Reddy Rikkala,5,High,Sprint 1-3,Todo,LB serves 2 VMSS instances; CI green; secrets in Key Vault; rollback tested
-STAY-31,US31,"Deploy Booking DB: migrations, backup, load test",Customer,Manoj,5,High,Sprint 3,Todo,Migration deployed; backup/restore checked; parallel booking load test shows no double-booking
-STAY-32,US32,"Deploy Analytics + Monitoring: job, dashboards, alerts",Host/Admin,Prajval Sudhir,5,High,Sprint 3,Todo,Analytics job + dashboards live; alerts on error rate/LB health; demo health dashboard matches period totals
+STAY-28,US28,Demo script + README + Journal + Sheet finalised,Team,All (rotated),2,High,Sprint 4,Done,"README has company, 4 names, contributions, Journal link, Sheet link; demo rehearsed twice"
+STAY-29,US29,"Deploy Find a Stay: frontend, CDN, Maps key, search health check",Customer,Vinayak Gupta,5,High,Sprint 2-3,In Progress,Frontend deployed to demo env; search smoke test passes; rollback = previous frontend build
+STAY-30,US30,"Deploy Platform: LB, VMSS, CI, Key Vault, deploy/rollback",Team,Ranadhir Reddy Rikkala,5,High,Sprint 1-3,In Progress,LB serves 2 VMSS instances; CI green; secrets in Key Vault; rollback tested
+STAY-31,US31,"Deploy Booking DB: migrations, backup, load test",Customer,Manoj,5,High,Sprint 3,In Progress,Migration deployed; backup/restore checked; parallel booking load test shows no double-booking
+STAY-32,US32,"Deploy Analytics + Monitoring: job, dashboards, alerts",Host/Admin,Prajval Sudhir,5,High,Sprint 3,In Progress,Analytics job + dashboards live; alerts on error rate/LB health; demo health dashboard matches period totals

@@ -56,6 +56,16 @@ class BookingService:
         errors = can_cancel(b, customer.id)
         if errors: raise ApiError("FORBIDDEN" if "owner" in " ".join(errors) else "VALIDATION_ERROR", "; ".join(errors))
         b.status = BookingStatus.CANCELLED; return b
+    def complete(self, customer: User, booking_id: int, today: date) -> Booking:
+        """Mark a CONFIRMED stay COMPLETED after check-out.
+        This is what unlocks reviews (can_review requires COMPLETED).
+        Demo path: book past dates, complete, then review."""
+        b = next((x for x in self.store.bookings if x.id == booking_id), None)
+        if not b: raise ApiError("NOT_FOUND", "Booking not found")
+        if b.customer_id != customer.id: raise ApiError("FORBIDDEN", "Only the booking owner can complete it")
+        if b.status != BookingStatus.CONFIRMED: raise ApiError("VALIDATION_ERROR", "Only CONFIRMED bookings can be completed")
+        if b.check_out > today: raise ApiError("VALIDATION_ERROR", "Stay has not ended yet (check_out is in the future)")
+        b.status = BookingStatus.COMPLETED; return b
 
 class ReviewService:
     def __init__(self, store): self.store = store

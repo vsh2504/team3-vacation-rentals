@@ -40,6 +40,7 @@ class Listing:
     amenities: list[str] = field(default_factory=list)
     available_times: str = "Check-in 3pm, check-out 11am; available year-round unless booked"
     status: ListingStatus = ListingStatus.PENDING_APPROVAL
+    photos: list[str] = field(default_factory=list)  # Sprint 2: seed photos; host upload (Blob) in Sprint 3
 
 @dataclass
 class Booking:
@@ -111,6 +112,7 @@ def analytics_by_zip(bookings: list[Booking], listings: list[Listing], *,
     by_id = {li.id: li for li in listings}
     by_zip: dict[str, dict] = {}
     total_bookings, total_revenue = 0, Decimal("0")
+    seen: dict[str, set] = {}
     for b in bookings:
         if b.status == BookingStatus.CANCELLED: continue
         li = by_id.get(b.listing_id)
@@ -119,8 +121,9 @@ def analytics_by_zip(bookings: list[Booking], listings: list[Listing], *,
         if not (start <= (b.booked_date or today) <= today): continue
         row = by_zip.setdefault(li.zip, {"zip": li.zip, "rentals": 0, "bookings": 0, "revenue": Decimal("0")})
         row["bookings"] += 1; row["revenue"] += b.total_price; total_bookings += 1; total_revenue += b.total_price
+        seen.setdefault(li.zip, set()).add(li.id)
     for row in by_zip.values():
-        row["rentals"] = row["bookings"]  # Week 1: rentals = bookings in period; distinct-listing count is Sprint 3
+        row["rentals"] = len(seen.get(row["zip"], set()))  # Sprint 3: distinct listings rented in period
         row["revenue"] = str(row["revenue"])
     return {"period_days": days, "by_zip": sorted(by_zip.values(), key=lambda r: r["zip"]),
             "total_bookings": total_bookings, "total_revenue": str(total_revenue)}

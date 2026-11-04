@@ -14,6 +14,7 @@ class ListingIn(BaseModel):
     lat: float; lng: float; price_per_night: float; max_guests: int = Field(ge=1)
     bedrooms: int; bathrooms: int; amenities: list[str] = []
     available_times: str = "Check-in 3pm, check-out 11am"
+    photos: list[str] = []  # Sprint 2: host-supplied photo URLs; Blob upload in Sprint 3
 
 class BookingIn(BaseModel):
     listing_id: int; check_in: date; check_out: date; guests: int = Field(ge=1)

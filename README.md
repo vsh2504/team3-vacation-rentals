@@ -104,3 +104,35 @@ structure is designed so that handover is a clean per-slice transfer.
 - Tracker: `tracking/` in this repo (CSV) + Excel workbook delivered with the Week 1 report
 - Full proposal: `docs/Team3_Vacation_Rentals_Proposal.md` (v2)
 - Deployed URL: TBD in Sprint 3 (Azure VM Scale Set + Load Balancer) — not claimed in Week 1
+
+## Sprints 1-4 — what is implemented (all weeks, 2026-11-04)
+
+Week 1 was contracts. Sprints 1-4 are the full product, in PRs per sprint:
+
+- **Sprint 1:** Auth UI, search via API, listing detail, My Bookings,
+  review form, admin queue endpoint, booking complete endpoint.
+- **Sprint 2:** Map (OSM embed / Google Maps embed with key, pins =
+  results, click pin -> detail), host listing CRUD UI, admin moderation
+  UI, search filters (city/state/zip/guests/dates), photos in API.
+- **Sprint 3:** Analytics dashboards (host/admin, 30/60/90, zip),
+  analytics rentals = distinct listings, SQL persistence
+  (STAYNEST_DB_URL, SQLite verified, Postgres via docker-compose),
+  migration 001_init.sql, backup script, parallel load test
+  (5 workers: 1 success, 4 conflicts — no double-booking),
+  Azure Bicep template (VMSS + LB + Postgres + Blob + Key Vault +
+  App Insights) — templates only, NOT provisioned.
+- **Sprint 4:** Demo script (4 moments), full acceptance run
+  (docs/acceptance-full.md), journals per sprint, tracker updated.
+
+Run it: see RUNNING.md (API + web, Swagger demo flow, demo admin).
+
+## What is NOT done — honestly
+- **Live Azure URL (US27):** not provisioned. It needs Vin's explicit
+  approval for a specific paid Azure deployment. The Bicep template,
+  migration, and CI deploy-check are the Sprint 3 evidence; localhost
+  + docker-compose are the verified deployment equivalent.
+- **Live Google Maps API key:** not committed (correctly). OSM embed
+  works without a key; Google Maps embed works with VITE_GOOGLE_MAPS_KEY.
+- **Real Blob photo upload:** host photo URLs are accepted in the
+  listing form; Blob upload wiring is a Sprint 3 template item, not a
+  live endpoint, for the same no-cloud-account reason as above.
