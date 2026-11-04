@@ -1,3 +1,5 @@
+// Frontend — Owner: Vinayak Gupta (team lead)
+// Feature: Find a Stay — listing card used by search results.
 import React from 'react';
 import { Link } from 'react-router-dom';
 // Props are the listing contract from docs/contracts.md.

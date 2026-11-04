@@ -1,3 +1,6 @@
+// Frontend — Owner: Ranadhir Reddy Rikkala (platform / routing)
+// Feature: Identity, Platform & Admin Control — app shell, role nav, auth state.
+// Pages themselves are owned by their feature owners (see their headers).
 import React, { useEffect, useState } from 'react';
 import { Link, Route, Routes, useNavigate } from 'react-router-dom';
 import SearchPage from './pages/SearchPage.jsx';

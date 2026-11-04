@@ -136,3 +136,18 @@ Run it: see RUNNING.md (API + web, Swagger demo flow, demo admin).
 - **Real Blob photo upload:** host photo URLs are accepted in the
   listing form; Blob upload wiring is a Sprint 3 template item, not a
   live endpoint, for the same no-cloud-account reason as above.
+
+## Frontend split — everyone gets a named frontend piece (PR 12)
+
+Same idea as the backend core APIs, for the web UI. See
+docs/frontend-breakdown.md for the full table; summary:
+
+- **Vinayak Gupta:** Search, Listing detail, Host listings, Listing card, Map
+- **Ranadhir Reddy Rikkala:** Auth page, Admin page, App shell / role nav / routing
+- **Manoj:** My bookings page, Booking form component
+- **Prajval Sudhir:** Analytics page, Review form component
+- **Shared (no single owner):** api/client.js — the only place the frontend touches HTTP
+
+Cross-feature use is explicit: BookingForm (Manoj) is rendered inside
+ListingDetail (Vinayak), ReviewForm (Prajval) inside Bookings (Manoj) —
+ownership follows the file, not the screen it appears on.

@@ -1,3 +1,5 @@
+// Frontend — Owner: Prajval Sudhir
+// Feature: Trust, Reviews & Analytics — host/admin dashboards (30/60/90, zip).
 import React, { useEffect, useState } from 'react';
 import { api } from '../api/client.js';
 // Sprint 3 (Prajval): host + admin analytics, by zip, 30/60/90 days.

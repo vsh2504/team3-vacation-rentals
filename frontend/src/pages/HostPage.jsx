@@ -1,3 +1,6 @@
+// Frontend — Owner: Vinayak Gupta (team lead) — host listing CRUD is part of Find a Stay
+// (listings are Vinayak's feature; Manoj owns booking, not listing creation).
+// New listings start PENDING_APPROVAL; only the owner can edit/delete (API enforces).
 import React, { useEffect, useState } from 'react';
 import { api } from '../api/client.js';
 // Sprint 1-2 (Manoj/Vinayak): host listing CRUD. Only the owner can edit/

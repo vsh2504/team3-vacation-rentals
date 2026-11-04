@@ -1,17 +1,47 @@
-# Slice ownership — see README "Authorship" for what this does and does not claim.
-# Slice A — Vinayak Gupta: identity, platform, CI, deploy
-/backend/app/core/* @vsh2504
+# Ownership — see README "Authorship" for what this does and does not claim.
+# All pushes in this repo are authored by @vsh2504 (Vinayak) in GitHub's
+# records, because teammates' credentials were not available. The entries
+# below show which agent workstream each file belongs to, not a claim
+# that that agent pushed it from their own account. Add teammates' handles
+# here when they join as collaborators.
+#
+# Backend core APIs (PR 9) — feature ownership from Sprint 1
+/backend/app/routers/auth.py @vsh2504
+/backend/app/routers/admin.py @vsh2504
+/backend/app/routers/listings.py @vsh2504
+/backend/app/routers/bookings.py @vsh2504
+/backend/app/routers/reviews.py @vsh2504
+/backend/app/routers/analytics.py @vsh2504
+/backend/app/routers/common.py @vsh2504
+#
+# Frontend (PR 12) — feature ownership, per docs/frontend-breakdown.md
+# Vinayak Gupta — Find a Stay
+/frontend/src/pages/SearchPage.jsx @vsh2504
+/frontend/src/pages/ListingDetailPage.jsx @vsh2504
+/frontend/src/pages/HostPage.jsx @vsh2504
+/frontend/src/components/ListingCard.jsx @vsh2504
+/frontend/src/components/MapView.jsx @vsh2504
+# Ranadhir Reddy Rikkala — Identity, Platform & Admin
+/frontend/src/pages/AuthPage.jsx @vsh2504
+/frontend/src/pages/AdminPage.jsx @vsh2504
+/frontend/src/App.jsx @vsh2504
+/frontend/src/main.jsx @vsh2504
+# Manoj — Book & Cancel
+/frontend/src/pages/BookingsPage.jsx @vsh2504
+/frontend/src/components/BookingForm.jsx @vsh2504
+# Prajval Sudhir — Reviews & Analytics
+/frontend/src/pages/AnalyticsPage.jsx @vsh2504
+/frontend/src/components/ReviewForm.jsx @vsh2504
+# Shared frontend (no single owner)
+/frontend/src/api/client.js @vsh2504
+#
+# Platform / docs / tracking (shared)
 /backend/app/main.py @vsh2504
+/backend/app/core/* @vsh2504
+/backend/app/db.py @vsh2504
+/backend/db/* @vsh2504
+/infra/* @vsh2504
 /.github/* @vsh2504
-/docker-compose.yml @vsh2504
-# Slice B — Ranadheer Reddy Rikala: listings, search, maps
-# (GitHub handle to be added when the teammate's account joins; files below are Slice B work)
-/backend/app/services.py @vsh2504
-/frontend/src/pages/* @vsh2504
-/frontend/src/components/* @vsh2504
-# Slice C — Manoj: booking engine
-/backend/app/domain.py @vsh2504
-/backend/tests/* @vsh2504
-# Slice D — Prajval Sudhir: reviews, analytics, admin
 /docs/* @vsh2504
 /tracking/* @vsh2504
+/scripts/* @vsh2504
