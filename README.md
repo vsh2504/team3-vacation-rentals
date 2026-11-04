@@ -56,7 +56,7 @@ Without Docker, the Week 1 domain tests run with only the Python standard
 library (no FastAPI install needed for the domain layer):
 
 ```bash
-python3 -m unittest backend/tests/test_week1.py -v
+python3 backend/tests/test_week1.py -v
 # or: python3 backend/tests/test_week1.py
 ```
 

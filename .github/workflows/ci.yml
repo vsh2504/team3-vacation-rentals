@@ -12,7 +12,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Domain tests (stdlib only, Week 1)
-        run: python3 -m unittest backend/tests/test_week1.py -v
+        run: python3 backend/tests/test_week1.py -v
       - name: Install API deps and import check
         run: |
           pip install -r backend/requirements.txt
