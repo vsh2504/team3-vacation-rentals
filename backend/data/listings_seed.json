@@ -1,0 +1,644 @@
+[
+  {
+    "id": 1,
+    "host_id": 1,
+    "title": "Downtown Loft with Skyline View #1",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "100 Demo Street",
+    "city": "San Jose",
+    "state": "CA",
+    "zip": "95110",
+    "lat": 37.3382,
+    "lng": -121.8863,
+    "price_per_night": 120,
+    "max_guests": 2,
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "amenities": [
+      "WiFi",
+      "Kitchen",
+      "Parking",
+      "Washer"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 2,
+    "host_id": 2,
+    "title": "Quiet Garden Cottage #2",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "101 Demo Street",
+    "city": "San Jose",
+    "state": "CA",
+    "zip": "95112",
+    "lat": 37.3579,
+    "lng": -121.8776,
+    "price_per_night": 135,
+    "max_guests": 3,
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "amenities": [
+      "WiFi",
+      "Pool",
+      "AC",
+      "Workspace"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 3,
+    "host_id": 3,
+    "title": "Modern Family Home near Tech Hub #3",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "102 Demo Street",
+    "city": "San Jose",
+    "state": "CA",
+    "zip": "95113",
+    "lat": 37.35,
+    "lng": -121.868,
+    "price_per_night": 150,
+    "max_guests": 4,
+    "bedrooms": 3,
+    "bathrooms": 1,
+    "amenities": [
+      "WiFi",
+      "Kitchen",
+      "EV Charger",
+      "Garden"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 4,
+    "host_id": 4,
+    "title": "Cozy Studio by the Park #4",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "103 Demo Street",
+    "city": "Santa Clara",
+    "state": "CA",
+    "zip": "95050",
+    "lat": 37.3841,
+    "lng": -121.9552,
+    "price_per_night": 165,
+    "max_guests": 5,
+    "bedrooms": 1,
+    "bathrooms": 2,
+    "amenities": [
+      "WiFi",
+      "Hot Tub",
+      "Fireplace"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 5,
+    "host_id": 1,
+    "title": "Luxury Condo with Pool #5",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "104 Demo Street",
+    "city": "Sunnyvale",
+    "state": "CA",
+    "zip": "94086",
+    "lat": 37.4088,
+    "lng": -122.0263,
+    "price_per_night": 180,
+    "max_guests": 6,
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "amenities": [
+      "WiFi",
+      "Kitchen",
+      "Parking",
+      "Washer"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 6,
+    "host_id": 2,
+    "title": "Charming Craftsman House #6",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "105 Demo Street",
+    "city": "San Francisco",
+    "state": "CA",
+    "zip": "94103",
+    "lat": 37.7749,
+    "lng": -122.3994,
+    "price_per_night": 195,
+    "max_guests": 2,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "amenities": [
+      "WiFi",
+      "Pool",
+      "AC",
+      "Workspace"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "PENDING_APPROVAL",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 7,
+    "host_id": 3,
+    "title": "Downtown Loft with Skyline View #7",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "106 Demo Street",
+    "city": "San Jose",
+    "state": "CA",
+    "zip": "95110",
+    "lat": 37.3482,
+    "lng": -121.8863,
+    "price_per_night": 210,
+    "max_guests": 3,
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "amenities": [
+      "WiFi",
+      "Kitchen",
+      "EV Charger",
+      "Garden"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 8,
+    "host_id": 4,
+    "title": "Quiet Garden Cottage #8",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "107 Demo Street",
+    "city": "San Jose",
+    "state": "CA",
+    "zip": "95112",
+    "lat": 37.3679,
+    "lng": -121.8776,
+    "price_per_night": 225,
+    "max_guests": 4,
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "amenities": [
+      "WiFi",
+      "Hot Tub",
+      "Fireplace"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 9,
+    "host_id": 1,
+    "title": "Modern Family Home near Tech Hub #9",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "108 Demo Street",
+    "city": "San Jose",
+    "state": "CA",
+    "zip": "95113",
+    "lat": 37.36,
+    "lng": -121.868,
+    "price_per_night": 240,
+    "max_guests": 5,
+    "bedrooms": 3,
+    "bathrooms": 1,
+    "amenities": [
+      "WiFi",
+      "Kitchen",
+      "Parking",
+      "Washer"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 10,
+    "host_id": 2,
+    "title": "Cozy Studio by the Park #10",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "109 Demo Street",
+    "city": "Santa Clara",
+    "state": "CA",
+    "zip": "95050",
+    "lat": 37.3941,
+    "lng": -121.9552,
+    "price_per_night": 255,
+    "max_guests": 6,
+    "bedrooms": 1,
+    "bathrooms": 2,
+    "amenities": [
+      "WiFi",
+      "Pool",
+      "AC",
+      "Workspace"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 11,
+    "host_id": 3,
+    "title": "Luxury Condo with Pool #11",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "110 Demo Street",
+    "city": "Sunnyvale",
+    "state": "CA",
+    "zip": "94086",
+    "lat": 37.3688,
+    "lng": -122.0263,
+    "price_per_night": 270,
+    "max_guests": 2,
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "amenities": [
+      "WiFi",
+      "Kitchen",
+      "EV Charger",
+      "Garden"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 12,
+    "host_id": 4,
+    "title": "Charming Craftsman House #12",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "111 Demo Street",
+    "city": "San Francisco",
+    "state": "CA",
+    "zip": "94103",
+    "lat": 37.7849,
+    "lng": -122.3994,
+    "price_per_night": 285,
+    "max_guests": 3,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "amenities": [
+      "WiFi",
+      "Hot Tub",
+      "Fireplace"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "PENDING_APPROVAL",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 13,
+    "host_id": 1,
+    "title": "Downtown Loft with Skyline View #13",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "112 Demo Street",
+    "city": "San Jose",
+    "state": "CA",
+    "zip": "95110",
+    "lat": 37.3582,
+    "lng": -121.8863,
+    "price_per_night": 120,
+    "max_guests": 4,
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "amenities": [
+      "WiFi",
+      "Kitchen",
+      "Parking",
+      "Washer"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 14,
+    "host_id": 2,
+    "title": "Quiet Garden Cottage #14",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "113 Demo Street",
+    "city": "San Jose",
+    "state": "CA",
+    "zip": "95112",
+    "lat": 37.3779,
+    "lng": -121.8776,
+    "price_per_night": 135,
+    "max_guests": 5,
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "amenities": [
+      "WiFi",
+      "Pool",
+      "AC",
+      "Workspace"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 15,
+    "host_id": 3,
+    "title": "Modern Family Home near Tech Hub #15",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "114 Demo Street",
+    "city": "San Jose",
+    "state": "CA",
+    "zip": "95113",
+    "lat": 37.37,
+    "lng": -121.868,
+    "price_per_night": 150,
+    "max_guests": 6,
+    "bedrooms": 3,
+    "bathrooms": 1,
+    "amenities": [
+      "WiFi",
+      "Kitchen",
+      "EV Charger",
+      "Garden"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 16,
+    "host_id": 4,
+    "title": "Cozy Studio by the Park #16",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "115 Demo Street",
+    "city": "Santa Clara",
+    "state": "CA",
+    "zip": "95050",
+    "lat": 37.3541,
+    "lng": -121.9552,
+    "price_per_night": 165,
+    "max_guests": 2,
+    "bedrooms": 1,
+    "bathrooms": 2,
+    "amenities": [
+      "WiFi",
+      "Hot Tub",
+      "Fireplace"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 17,
+    "host_id": 1,
+    "title": "Luxury Condo with Pool #17",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "116 Demo Street",
+    "city": "Sunnyvale",
+    "state": "CA",
+    "zip": "94086",
+    "lat": 37.3788,
+    "lng": -122.0263,
+    "price_per_night": 180,
+    "max_guests": 3,
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "amenities": [
+      "WiFi",
+      "Kitchen",
+      "Parking",
+      "Washer"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 18,
+    "host_id": 2,
+    "title": "Charming Craftsman House #18",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "117 Demo Street",
+    "city": "San Francisco",
+    "state": "CA",
+    "zip": "94103",
+    "lat": 37.7949,
+    "lng": -122.3994,
+    "price_per_night": 195,
+    "max_guests": 4,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "amenities": [
+      "WiFi",
+      "Pool",
+      "AC",
+      "Workspace"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "PENDING_APPROVAL",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 19,
+    "host_id": 3,
+    "title": "Downtown Loft with Skyline View #19",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "118 Demo Street",
+    "city": "San Jose",
+    "state": "CA",
+    "zip": "95110",
+    "lat": 37.3682,
+    "lng": -121.8863,
+    "price_per_night": 210,
+    "max_guests": 5,
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "amenities": [
+      "WiFi",
+      "Kitchen",
+      "EV Charger",
+      "Garden"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 20,
+    "host_id": 4,
+    "title": "Quiet Garden Cottage #20",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "119 Demo Street",
+    "city": "San Jose",
+    "state": "CA",
+    "zip": "95112",
+    "lat": 37.3879,
+    "lng": -121.8776,
+    "price_per_night": 225,
+    "max_guests": 6,
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "amenities": [
+      "WiFi",
+      "Hot Tub",
+      "Fireplace"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 21,
+    "host_id": 1,
+    "title": "Modern Family Home near Tech Hub #21",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "120 Demo Street",
+    "city": "San Jose",
+    "state": "CA",
+    "zip": "95113",
+    "lat": 37.33,
+    "lng": -121.868,
+    "price_per_night": 240,
+    "max_guests": 2,
+    "bedrooms": 3,
+    "bathrooms": 1,
+    "amenities": [
+      "WiFi",
+      "Kitchen",
+      "Parking",
+      "Washer"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 22,
+    "host_id": 2,
+    "title": "Cozy Studio by the Park #22",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "121 Demo Street",
+    "city": "Santa Clara",
+    "state": "CA",
+    "zip": "95050",
+    "lat": 37.3641,
+    "lng": -121.9552,
+    "price_per_night": 255,
+    "max_guests": 3,
+    "bedrooms": 1,
+    "bathrooms": 2,
+    "amenities": [
+      "WiFi",
+      "Pool",
+      "AC",
+      "Workspace"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 23,
+    "host_id": 3,
+    "title": "Luxury Condo with Pool #23",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "122 Demo Street",
+    "city": "Sunnyvale",
+    "state": "CA",
+    "zip": "94086",
+    "lat": 37.3888,
+    "lng": -122.0263,
+    "price_per_night": 270,
+    "max_guests": 4,
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "amenities": [
+      "WiFi",
+      "Kitchen",
+      "EV Charger",
+      "Garden"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "APPROVED",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  },
+  {
+    "id": 24,
+    "host_id": 4,
+    "title": "Charming Craftsman House #24",
+    "description": "Week 1 seed listing. Photos, amenities, and host details are mock data for demo and testing.",
+    "address": "123 Demo Street",
+    "city": "San Francisco",
+    "state": "CA",
+    "zip": "94103",
+    "lat": 37.8049,
+    "lng": -122.3994,
+    "price_per_night": 285,
+    "max_guests": 5,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "amenities": [
+      "WiFi",
+      "Hot Tub",
+      "Fireplace"
+    ],
+    "available_times": "Check-in 3pm, check-out 11am; available year-round unless booked",
+    "status": "PENDING_APPROVAL",
+    "photos": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+    ]
+  }
+]
