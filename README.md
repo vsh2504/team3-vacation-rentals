@@ -1,3 +1,102 @@
-# StayNest — Team 3
+# StayNest — Team 3 Vacation Rental Booking Platform
 
-Week 1 repo — full README lands in PR1 (a/repo-scaffold).
+An Airbnb-style end-to-end platform to search, book, manage, and review
+vacation rentals, with separate Customer, Host, and Admin experiences,
+on one JSON API.
+
+**Company / product:** StayNest (Team 3)
+**Tech stack:** Python FastAPI, React.js, PostgreSQL, Azure
+**Working days:** Thursday, Friday, Saturday — every week.
+Thu = planning + contracts, Fri = build + PRs, Sat = review + merge + journal.
+**Meeting rhythm:** Face-to-face Thu/Fri/Sat, Google Meet as backup,
+Google Chat for same-day blockers.
+
+## Team — AI agents / workstreams
+
+| Slice | Agent | Scope |
+|---|---|---|
+| A. Identity, Roles & Platform | Vinayak Gupta | Auth, JWT + RBAC, error envelope, app shell, CI, Azure deploy |
+| B. Listings, Search & Maps | Ranadheer Reddy Rikala | Listing CRUD (Host), search + filters, listing detail, Google Maps |
+| C. Booking Engine | Manoj | Availability, overlap, book, my bookings, cancel, pricing |
+| D. Reviews, Host & Admin Analytics | Prajval Sudhir | Reviews on past bookings only, Host analytics, Admin approve/remove + platform analytics |
+
+Name spelling note: the team sheet previously showed "Ranadhir Reddy Rikkala"
+and "Manoj Ganjigatte Manjunatha". This repo uses the names as given on
+2026-11-04 — Ranadheer Reddy Rikala and Manoj — and flags the spelling
+difference for confirmation before Demo Day grading. No other agent's
+GitHub account is used in this repo: see "Authorship" below.
+
+## Week 1 — what is in this repo (Thu 1 Oct – Sat 3 Oct 2026 scope)
+
+Week 1 is Sprint 0: contracts before code. It does **not** claim a finished
+booking UI. It delivers, in five incremental PRs:
+
+1. `a/repo-scaffold` — repo, CI, Docker, contracts, README
+2. `b/domain-models` — domain classes, repositories, services (frozen contracts)
+3. `c/seed-frontend-wireframes` — seed data, React scaffold, wireframes
+4. `d/tests-acceptance` — pure-Python tests, acceptance matrix, journal
+5. `e/tracker-docs` — Jira-like tracker (CSV in repo, Excel attached to the Week 1 report), proposal summary
+
+Each PR is small, reviewed in its description by another slice, and merged
+in order. Commit timestamps on GitHub are the real push dates (Nov 2026
+execution of the Oct Week 1 scope) — they are not backdated to October.
+The Week 1 journal in `docs/journal/week1-scrum.md` separates
+*planned* Week 1 dates (Thu 1 – Sat 3 Oct) from *actual* repo dates.
+
+## Quick start (local)
+
+```bash
+docker compose up --build
+# API: http://localhost:8000/health
+# API docs (FastAPI): http://localhost:8000/docs
+# Frontend: http://localhost:5173
+```
+
+Without Docker, the Week 1 domain tests run with only the Python standard
+library (no FastAPI install needed for the domain layer):
+
+```bash
+python3 -m unittest backend/tests/test_week1.py -v
+# or: python3 backend/tests/test_week1.py
+```
+
+## API contract (summary — full contract in docs/contracts.md)
+
+- All input/output JSON. One error envelope everywhere (see docs/contracts.md).
+- Auth: `POST /auth/register` (CUSTOMER or HOST only; Admin is seeded),
+  `POST /auth/login` returns JWT with `sub`, `role`, `exp`.
+- Search: `GET /listings/search?check_in&check_out&guests&city&state&zip`
+- Listings: `POST /listings` (Host), `PUT /listings/{id}` (own only),
+  `DELETE /listings/{id}` (own only), `GET /host/listings`.
+- Bookings: `POST /bookings`, `GET /bookings/me`, `POST /bookings/{id}/cancel`.
+- Reviews: `POST /reviews` (COMPLETED bookings only, one per booking).
+- Admin: `POST /admin/listings/{id}/approve|reject`, `DELETE /admin/listings/{id}`,
+  `GET /admin/analytics?days=30|60|90&zip=`.
+- Host analytics: `GET /host/analytics?days=30|60|90&zip=`.
+
+Hard rules, enforced in the service layer and tested in Week 1:
+- Max stay 14 days: `checkout - checkin <= 14`, else 422.
+- No overlapping CONFIRMED booking for the same listing, else 409.
+- `guests <= listing.max_guests`, else 422.
+- Only APPROVED listings appear in search.
+- Reviews only on COMPLETED bookings owned by the reviewer, else 422/403.
+
+## Authorship — read before judging contributions
+
+This repo was created under the GitHub account `vsh2504` (Vinayak Gupta).
+All pushes through the Muse GitHub connector are therefore authored by
+that account in GitHub's records. Slice ownership in CODEOWNERS, PR
+descriptions, file headers, the tracker, and the journal shows which
+agent workstream each change belongs to — but it does **not** claim that
+the other three agents pushed from their own GitHub accounts, because
+they did not, and their credentials were not available to this session.
+If the course requires four distinct GitHub authors, each teammate must
+push their own slice from their own account; this repo's branch/PR
+structure is designed so that handover is a clean per-slice transfer.
+
+## Links (fill in after the team repo is shared)
+
+- Project Journal: `docs/journal/` in this repo (Week 1: `docs/journal/week1-scrum.md`)
+- Tracker: `tracking/` in this repo (CSV) + Excel workbook delivered with the Week 1 report
+- Full proposal: `docs/Team3_Vacation_Rentals_Proposal.md` (v2)
+- Deployed URL: TBD in Sprint 3 (Azure VM Scale Set + Load Balancer) — not claimed in Week 1
