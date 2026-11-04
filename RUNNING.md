@@ -87,3 +87,19 @@ python3 backend/tests/test_week1.py -v
 # 11 tests: 14-day rule, overlap, guest cap, pending-not-in-search,
 # review past/owned/once, cancel, booked-today, analytics scope
 ```
+
+## Sprints 1-4 — full app (not just Swagger)
+
+After Sprint 1, the web UI is the full app, not a scaffold:
+- `/` Search (API, filters, map pins -> detail)
+- `/auth` Log in / Register (role nav changes by role)
+- `/host` My listings (create/edit/delete, HOST only)
+- `/bookings` My bookings (cancel, mark completed, review completed)
+- `/admin` Approvals queue (approve/reject/remove, ADMIN only)
+- `/analytics` Host/admin dashboards (30/60/90, zip filter)
+- `/listings/:id` Detail (photos, amenities, cost, rating, reviews, # booked today, Book form)
+
+Demo in 4 moments, in order: see docs/demo-script.md.
+DB mode: `STAYNEST_DB_URL=sqlite:///./staynest.db uvicorn app.main:app --port 8000`
+from backend/ — data persists across restarts. Without it, the in-memory
+store + seed is used and resets on restart.
