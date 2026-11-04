@@ -16,7 +16,7 @@ export default function MapView({ listings }) {
     ? `https://www.google.com/maps/embed/v1/view?key=${key}&center=${first.lat},${first.lng}&zoom=12`
     : `https://www.openstreetmap.org/export/embed.html?bbox=${first.lng - 0.08},${first.lat - 0.05},${first.lng + 0.08},${first.lat + 0.05}&layer=mapnik&marker=${first.lat},${first.lng}`;
   return (
-    <div style={{ border: '1px solid #ddd', padding: 12, margin: '12px 0' }}>
+    <div className="map-box">
       <strong>Map — {key ? 'Google Maps' : 'OpenStreetMap (no key needed)'} — pins = search results</strong>
       <iframe title="map" src={src} width="100%" height="280" style={{ border: 0, marginTop: 8 }} loading="lazy" />
       <ul>{listings.map(l => (

@@ -18,7 +18,7 @@ export default function BookingsPage({ auth }) {
   const other = bookings.filter(b => !upcoming.includes(b) && !past.includes(b));
   async function act(fn, id, okMsg) { setError(''); try { await fn(auth.token, id); setMsg(okMsg); load(); } catch (err) { setError(err.message); } }
   const row = (b) => (
-    <article key={b.id} style={{ border: '1px solid #ddd', padding: 12, margin: '12px 0' }}>
+    <article className="page-card">
       <strong>Booking #{b.id}</strong> — listing #{b.listing_id} — {b.check_in} → {b.check_out} — {b.guests} guests — ${b.total_price} — {b.status}
       <div>
         {b.status === 'CONFIRMED' && <><button onClick={() => act(api.cancelBooking, b.id, 'Booking cancelled — dates are free again.')}>Cancel</button>{' '}

@@ -18,7 +18,7 @@ export default function BookingForm({ auth, listingId }) {
     } catch (err) { setError(err.message); }
   }
   return (
-    <div>
+    <div className="booking-card">
       <h3>Book this stay (max 14 days)</h3>
       <form onSubmit={book}>
         <label>Check-in <input required type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)} /></label>{' '}

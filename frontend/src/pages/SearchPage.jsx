@@ -32,7 +32,7 @@ export default function SearchPage() {
   return (
     <section>
       <h2>Search vacation rentals (max stay 14 days)</h2>
-      <form onSubmit={run}>
+      <form onSubmit={run} className="search-bar">
         <label>Zip <input value={zip} onChange={e => setZip(e.target.value)} placeholder="95110" /></label>{' '}
         <label>City <input value={city} onChange={e => setCity(e.target.value)} placeholder="San Jose" /></label>{' '}
         <label>State <input value={state} onChange={e => setState(e.target.value)} placeholder="CA" /></label>{' '}
@@ -44,7 +44,7 @@ export default function SearchPage() {
       {error && <p role="alert">{error}</p>}
       <p>{results.length} listings match ({source}).</p>
       <MapView listings={results} />
-      <div>{results.map(l => <ListingCard key={l.id} listing={l} />)}</div>
+      <div className="results-grid">{results.map(l => <ListingCard key={l.id} listing={l} />)}</div>
     </section>
   );
 }

@@ -26,9 +26,9 @@ export default function App() {
   }
   const role = auth?.user?.role;
   return (
-    <div style={{ fontFamily: 'system-ui', maxWidth: 960, margin: '0 auto', padding: 16 }}>
-      <header><h1>StayNest</h1>
-        <nav>
+    <div className="app">
+      <header className="site-header"><h1 className="logo">StayNest</h1>
+        <nav className="site-nav">
           <Link to="/">Search</Link>{' | '}
           {role === 'HOST' && <><Link to="/host">My listings</Link>{' | '}</>}
           {auth && <><Link to="/bookings">My bookings</Link>{' | '}</>}
