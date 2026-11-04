@@ -27,3 +27,7 @@ STAY-25,US25,Wireframes for every screen,Team,B - Ranadheer Reddy Rikala / D - P
 STAY-26,US26,Component + deployment diagrams,Team,A - Vinayak Gupta,2,Medium,Sprint 0-3,Done,Diagrams in docs/architecture.md; match actual Azure resources in Sprint 3
 STAY-27,US27,Acceptance test run on deployed URL,Team,C - Manoj / D - Prajval Sudhir,3,High,Sprint 3,Todo,Acceptance matrix all pass; failures become Sprint 4 stories
 STAY-28,US28,Demo script + README + Journal + Sheet finalised,Team,All (rotated),2,High,Sprint 4,Todo,"README has company, 4 names, contributions, Journal link, Sheet link; demo rehearsed twice"
+STAY-29,US29,"Deploy Find a Stay: frontend, CDN, Maps key, search health check",Customer,Vinayak Gupta,5,High,Sprint 2-3,Todo,Frontend deployed to demo env; search smoke test passes; rollback = previous frontend build
+STAY-30,US30,"Deploy Platform: LB, VMSS, CI, Key Vault, deploy/rollback",Team,Ranadhir Reddy Rikkala,5,High,Sprint 1-3,Todo,LB serves 2 VMSS instances; CI green; secrets in Key Vault; rollback tested
+STAY-31,US31,"Deploy Booking DB: migrations, backup, load test",Customer,Manoj,5,High,Sprint 3,Todo,Migration deployed; backup/restore checked; parallel booking load test shows no double-booking
+STAY-32,US32,"Deploy Analytics + Monitoring: job, dashboards, alerts",Host/Admin,Prajval Sudhir,5,High,Sprint 3,Todo,Analytics job + dashboards live; alerts on error rate/LB health; demo health dashboard matches period totals

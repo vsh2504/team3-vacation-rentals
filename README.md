@@ -11,20 +11,24 @@ Thu = planning + contracts, Fri = build + PRs, Sat = review + merge + journal.
 **Meeting rhythm:** Face-to-face Thu/Fri/Sat, Google Meet as backup,
 Google Chat for same-day blockers.
 
-## Team — AI agents / workstreams
+## Team — AI agents / workstreams (feature ownership from Sprint 1)
 
-| Slice | Agent | Scope |
-|---|---|---|
-| A. Identity, Roles & Platform | Vinayak Gupta | Auth, JWT + RBAC, error envelope, app shell, CI, Azure deploy |
-| B. Listings, Search & Maps | Ranadheer Reddy Rikala | Listing CRUD (Host), search + filters, listing detail, Google Maps |
-| C. Booking Engine | Manoj | Availability, overlap, book, my bookings, cancel, pricing |
-| D. Reviews, Host & Admin Analytics | Prajval Sudhir | Reviews on past bookings only, Host analytics, Admin approve/remove + platform analytics |
+See `docs/feature-breakdown.md` for the full breakdown — every feature
+has API + UI + DB + tests + its own DevOps piece + its own deployment
+proof + a Demo Day moment. No one is only DevOps, only UI, or only docs.
 
-Name spelling note: the team sheet previously showed "Ranadhir Reddy Rikkala"
-and "Manoj Ganjigatte Manjunatha". This repo uses the names as given on
-2026-11-04 — Ranadheer Reddy Rikala and Manoj — and flags the spelling
-difference for confirmation before Demo Day grading. No other agent's
-GitHub account is used in this repo: see "Authorship" below.
+| Feature | Agent | API + UI | DevOps + deployment |
+|---|---|---|---|
+| Find a Stay (Search, Maps, Detail) | Vinayak Gupta (team lead) | Search, map, detail | Frontend deploy, CDN, Maps key, search health check |
+| Identity, Platform & Admin Control | Ranadhir Reddy Rikkala | Auth, RBAC, admin moderation | LB, VM Scale Set, CI baseline, Key Vault, main deploy/rollback |
+| Book & Cancel a Stay | Manoj | Availability, book, cancel | Postgres migrations, backup, load test, DB deploy |
+| Trust, Reviews & Analytics | Prajval Sudhir | Reviews, host/admin dashboards | Monitoring, analytics job, alerts, health dashboard |
+
+Week 1 note: Week 1 PRs used Slice A-D labels for contract scaffolding
+(A Vinayak platform, B Ranadheer listings, C Manoj booking, D Prajval
+reviews/analytics). That history is kept as-is; feature ownership above
+governs Sprint 1 onward. Name spelling: team file says Ranadhir Reddy
+Rikkala; Week 1 repo used Ranadheer Reddy Rikala — confirm before grading.
 
 ## Week 1 — what is in this repo (Thu 1 Oct – Sat 3 Oct 2026 scope)
 
