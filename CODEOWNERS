@@ -1,0 +1,17 @@
+# Slice ownership — see README "Authorship" for what this does and does not claim.
+# Slice A — Vinayak Gupta: identity, platform, CI, deploy
+/backend/app/core/* @vsh2504
+/backend/app/main.py @vsh2504
+/.github/* @vsh2504
+/docker-compose.yml @vsh2504
+# Slice B — Ranadheer Reddy Rikala: listings, search, maps
+# (GitHub handle to be added when the teammate's account joins; files below are Slice B work)
+/backend/app/services.py @vsh2504
+/frontend/src/pages/* @vsh2504
+/frontend/src/components/* @vsh2504
+# Slice C — Manoj: booking engine
+/backend/app/domain.py @vsh2504
+/backend/tests/* @vsh2504
+# Slice D — Prajval Sudhir: reviews, analytics, admin
+/docs/* @vsh2504
+/tracking/* @vsh2504
