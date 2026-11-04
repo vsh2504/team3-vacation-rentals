@@ -21,6 +21,26 @@ async def api_error_handler(_, exc: ApiError):
 def health():
     return {"success": True, "data": {"status": "ok", "version": "0.2.0-core-apis"}, "error": None}
 
+@app.on_event("startup")
+def seed_demo_data():
+    """Demo-only startup seed (in-memory store).
+    Loads the 24 seed listings (20 APPROVED) so search works immediately,
+    and creates a demo admin if none exists. This is NOT production auth:
+    change/remove the demo admin before any real deployment, and replace
+    the in-memory store with PostgreSQL in Sprint 1 (see routers/common.py).
+    Demo admin: admin@staynest.local / admin12345 (demo only).
+    """
+    from .core.security import hash_password
+    from .domain import User, UserRole
+    from .routers.common import STORE
+    from .seed import load_seed
+    if not STORE.listings:
+        load_seed(STORE)
+    if not any(u.role == UserRole.ADMIN for u in STORE.users):
+        STORE.users.append(User(id=99, email="admin@staynest.local",
+                                password_hash=hash_password("admin12345"),
+                                full_name="Demo Admin", role=UserRole.ADMIN))
+
 # Core APIs, one router per agent — see each router file's header.
 app.include_router(auth.router)
 app.include_router(admin.router)
