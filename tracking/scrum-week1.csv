@@ -1,0 +1,13 @@
+Working Day,Agent,Did / Completed,Doing Next,Blocked By / On Whom
+Thu 1 Oct 2026,Vinayak Gupta (A),"Repo scaffold, CI, Docker, error envelope, README","JWT + RBAC service, /health",None
+Thu 1 Oct 2026,Ranadheer Reddy Rikala (B),"Listing data model draft, wireframe sketches",Search filter strategies,Google Maps API key (BLK-1)
+Thu 1 Oct 2026,Manoj (C),"Booking state machine draft, overlap test cases","Availability service, in-memory repo",None
+Thu 1 Oct 2026,Prajval Sudhir (D),"Review + analytics sketches, admin flow draft",Review service behind COMPLETED,None
+Fri 2 Oct 2026,Vinayak Gupta (A),"Auth service, seed loader design",Role guards (Sprint 1),None
+Fri 2 Oct 2026,Ranadheer Reddy Rikala (B),"Listing service, search filters",Listing detail + photos (Sprint 2),Maps key still pending (BLK-1)
+Fri 2 Oct 2026,Manoj (C),"Availability + booking service, tests",My bookings + cancel (Sprint 2),"Listing enum stub (BLK-2, resolved same day)"
+Fri 2 Oct 2026,Prajval Sudhir (D),"Review service, analytics_by_zip",Admin approve/reject UI (Sprint 2),Azure DB admin seed (BLK-3)
+Sat 3 Oct 2026,Vinayak Gupta (A),"Reviewed B/C/D PRs, merged in order, CI green",Sprint 1 auth routers,None
+Sat 3 Oct 2026,Ranadheer Reddy Rikala (B),"Reviewed A/C PRs, wireframes inventory",Sprint 1 listing CRUD routers,None
+Sat 3 Oct 2026,Manoj (C),"Reviewed A/B PRs, acceptance matrix",Sprint 1 booking router,None
+Sat 3 Oct 2026,Prajval Sudhir (D),"Reviewed A/B PRs, tracker + journal",Sprint 1 review router,None

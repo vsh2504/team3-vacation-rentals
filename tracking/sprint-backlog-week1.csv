@@ -1,0 +1,13 @@
+Key,Story ID,Task,Assignee (Slice),Working Day,Status,PR / Branch,Notes
+STAY-4,US04,"Repo, CI, Docker Compose, Azure plan",Vinayak Gupta (A),Thu 1 Oct,Done,PR1 a/repo-scaffold,CI: domain tests + import check
+STAY-5,US05,Error envelope + validation contract,Vinayak Gupta (A),Thu 1 Oct,Done,PR1 a/repo-scaffold,core/errors.py
+STAY-24,US24,Seed data 24 listings,Vinayak Gupta (A),Fri 2 Oct,Done,PR3 c/seed-frontend-wireframes,20 APPROVED / 4 PENDING
+STAY-6,US06,Listing model + create PENDING (domain),Ranadheer Reddy Rikala (B),Thu 1 Oct,Done,PR2 b/domain-models,ListingService.create
+STAY-10,US10,Search filter strategies (domain),Ranadheer Reddy Rikala (B),Fri 2 Oct,Done,PR2 b/domain-models,"Strategy pattern, tested"
+STAY-25,US25,Wireframes inventory 18 screens,Ranadheer Reddy Rikala (B),Sat 3 Oct,Done,PR3 c/seed-frontend-wireframes,docs/wireframes.md
+STAY-17,US17,Availability + overlap + 14-day (domain),Manoj (C),Thu 1 Oct,Done,PR2 b/domain-models,domain.py + tests
+STAY-14,US14,"Booking service (domain, create only)",Manoj (C),Fri 2 Oct,Done,PR2 b/domain-models,Router wiring Sprint 1
+STAY-18,US18,"Review service (COMPLETED only, domain)",Prajval Sudhir (D),Fri 2 Oct,Done,PR2 b/domain-models,One review per booking
+STAY-20,US20,Analytics by zip 30/60/90 (domain),Prajval Sudhir (D),Fri 2 Oct,Done,PR2 b/domain-models,Host scope tested
+STAY-27,US27,Week 1 acceptance matrix,Manoj (C) / Prajval Sudhir (D),Sat 3 Oct,Done,PR4 d/tests-acceptance,docs/acceptance-week1.md
+STAY-28,US28,Week 1 journal + tracker,Prajval Sudhir (D),Sat 3 Oct,Done,PR5 e/tracker-docs,This tracker + journal
