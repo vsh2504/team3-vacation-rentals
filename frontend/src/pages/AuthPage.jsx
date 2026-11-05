@@ -6,6 +6,7 @@ import { api } from '../api/client.js';
 import Alert from '../components/ui/Alert.jsx';
 import Button from '../components/ui/Button.jsx';
 import Badge from '../components/ui/Badge.jsx';
+import { validateAuth } from '../validation/auth.js';
 
 export default function AuthPage({ onAuth }) {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
@@ -19,28 +20,7 @@ export default function AuthPage({ onAuth }) {
   const [isLoading, setIsLoading] = useState(false);
 
   function validate() {
-    const errs = {};
-    if (!email.trim()) {
-      errs.email = 'Email address is required.';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      errs.email = 'Please enter a valid email address.';
-    }
-
-    if (!password) {
-      errs.password = 'Password is required.';
-    } else if (password.length < 8) {
-      errs.password = 'Password must be at least 8 characters.';
-    }
-
-    if (mode === 'register') {
-      if (!fullName.trim()) {
-        errs.fullName = 'Full name is required.';
-      }
-      if (role !== 'CUSTOMER' && role !== 'HOST') {
-        errs.role = 'Please select a valid account role.';
-      }
-    }
-
+    const errs = validateAuth({ mode, email, password, fullName, role });
     setFieldErrors(errs);
     return Object.keys(errs).length === 0;
   }

@@ -1,4 +1,7 @@
-"""Host and platform analytics (access control + domain aggregation)."""
+"""Host and platform analytics (access control + domain aggregation).
+
+Pattern: Service Layer.
+"""
 from datetime import date
 
 from ..core.errors import ApiError

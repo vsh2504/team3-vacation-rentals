@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { api } from '../api/client.js';
 import { Alert, Badge, Button, Card, Spinner, TableContainer } from '../components/ui/index.js';
+import RoleGuard from '../components/RoleGuard.jsx';
 import './dashboards.css';
 
 const STATUS_VARIANT = { APPROVED: 'success', PENDING_APPROVAL: 'warning', REJECTED: 'danger', REMOVED: 'danger' };
@@ -62,7 +63,7 @@ function ModerationCard({ l, busy, onAct }) {
   );
 }
 
-export default function AdminPage({ auth }) {
+function AdminQueue({ auth }) {
   const [filter, setFilter] = useState('PENDING_APPROVAL');
   const [items, setItems] = useState(null);
   const [counts, setCounts] = useState({});
@@ -70,10 +71,8 @@ export default function AdminPage({ auth }) {
   const [busy, setBusy] = useState('');
   const [msg, setMsg] = useState('');
   const [error, setError] = useState('');
-  const isAdmin = auth?.user?.role === 'ADMIN';
 
   const load = useCallback(async () => {
-    if (!isAdmin) return;
     setLoading(true); setError('');
     try {
       const [list, all] = await Promise.all([api.adminListings(auth.token, filter), api.adminListings(auth.token)]);
@@ -83,11 +82,8 @@ export default function AdminPage({ auth }) {
       setCounts(c);
     } catch (e) { setError(e.message); setItems(prev => prev || []); }
     finally { setLoading(false); }
-  }, [auth, filter, isAdmin]);
+  }, [auth, filter]);
   useEffect(() => { load(); }, [load]);
-
-  if (!auth) return <Alert variant="info">Log in as an administrator to moderate listings.</Alert>;
-  if (!isAdmin) return <Alert variant="error" title="Administrators only">Sign in with an administrator account.</Alert>;
 
   async function onAct(kind, l, okMsg) {
     setBusy(`${kind}-${l.id}`); setMsg(''); setError('');
@@ -129,5 +125,15 @@ export default function AdminPage({ auth }) {
         </details>
       )}
     </section>
+  );
+}
+
+export default function AdminPage({ auth }) {
+  return (
+    <RoleGuard auth={auth} roles={['ADMIN']}
+      loggedOut={<Alert variant="info">Log in as an administrator to moderate listings.</Alert>}
+      denied={<Alert variant="error" title="Administrators only">Sign in with an administrator account.</Alert>}>
+      <AdminQueue auth={auth} />
+    </RoleGuard>
   );
 }

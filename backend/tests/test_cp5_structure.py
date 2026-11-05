@@ -1,12 +1,10 @@
 """Checkpoint 5: injectable geocoder + ListingSearch, Template Method providers,
 store factory (Singleton construction)."""
-from datetime import date
 from decimal import Decimal
 
 import pytest
 
 from app import geocoding as g
-from app.core.errors import ApiError
 from app.domain import Listing, ListingStatus, User, UserRole
 from app.repositories import InMemoryStore
 from app.services import ListingService

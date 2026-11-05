@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { api } from '../api/client.js';
 import { Alert, Button, Spinner, TableContainer } from '../components/ui/index.js';
+import RoleGuard from '../components/RoleGuard.jsx';
 import './dashboards.css';
 
 const PERIODS = [30, 60, 90];
@@ -27,7 +28,7 @@ function BarChart({ rows, valueKey, title, format }) {
   );
 }
 
-export default function AnalyticsPage({ auth }) {
+function AnalyticsDashboard({ auth }) {
   const [days, setDays] = useState(30);
   const [zipInput, setZipInput] = useState('');
   const [zip, setZip] = useState('');
@@ -35,22 +36,17 @@ export default function AnalyticsPage({ auth }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const role = auth?.user?.role;
-  const allowed = role === 'ADMIN' || role === 'HOST';
+  const role = auth.user.role;
 
   const load = useCallback(async () => {
-    if (!allowed) return;
     setLoading(true); setError('');
     try {
       const fn = role === 'ADMIN' ? api.adminAnalytics : api.hostAnalytics;
       setData(await fn(auth.token, days, zip));
     } catch (e) { setError(e.message); }
     finally { setLoading(false); }
-  }, [auth, days, zip, role, allowed]);
+  }, [auth, days, zip, role]);
   useEffect(() => { load(); }, [load]);
-
-  if (!auth) return <Alert variant="info">Log in as a host or administrator to see analytics.</Alert>;
-  if (!allowed) return <Alert variant="info" title="Not available for customers">Analytics are for hosts and administrators.</Alert>;
 
   function applyZip(e) {
     e.preventDefault();
@@ -111,5 +107,15 @@ export default function AnalyticsPage({ auth }) {
         </>}
       </div>}
     </section>
+  );
+}
+
+export default function AnalyticsPage({ auth }) {
+  return (
+    <RoleGuard auth={auth} roles={['ADMIN', 'HOST']}
+      loggedOut={<Alert variant="info">Log in as a host or administrator to see analytics.</Alert>}
+      denied={<Alert variant="info" title="Not available for customers">Analytics are for hosts and administrators.</Alert>}>
+      <AnalyticsDashboard auth={auth} />
+    </RoleGuard>
   );
 }

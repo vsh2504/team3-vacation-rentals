@@ -1,20 +1,31 @@
-"""Booking, cancellation and completion use-cases."""
+"""Booking, cancellation and completion use-cases.
+
+Pattern: Service Layer (delegates to Mediator, publishes Observer events).
+"""
 from datetime import date, datetime, time, timezone
 
 from ..core.errors import ApiError
 from ..domain import Booking, User, UserRole, booking_state_for, can_cancel
-from ..factories import BookingFactory
+from ..events import EVENTS, BookingCancelled, BookingCompleted
+from ..price_quotes import DEFAULT_QUOTE
+from .booking_mediator import BookingMediator
 from .listing_service import ListingService
 
 
 class BookingService:
-    def __init__(self, store):
+    def __init__(self, store, events=None, quote=DEFAULT_QUOTE):
         self.store = store
+        self.quote = quote
+        self.events = events or EVENTS
+
+    def _publish(self, event_type, booking: Booking) -> None:
+        host_id = next((l.host_id for l in self.store.listings if l.id == booking.listing_id), None)
+        self.events.publish(event_type(booking.id, booking.listing_id, booking.customer_id, host_id))
 
     def _find(self, booking_id: int) -> Booking:
         booking = next((x for x in self.store.bookings if x.id == booking_id), None)
         if not booking:
-            raise ApiError("NOT_FOUND", "Booking not found")
+            raise ApiError.not_found("Booking not found")
         return booking
 
     def book(self, customer: User, listing_id: int, check_in: date, check_out: date,
@@ -25,21 +36,10 @@ class BookingService:
         li = next((l for l in self.store.listings if l.id == listing_id), None)
         if not li:
             raise ApiError("NOT_FOUND", "Listing not found")
-        rules = ListingService(self.store).availability(
-            li, check_in=check_in, check_out=check_out,
-            check_in_time=check_in_time, check_out_time=check_out_time,
-            guests=guests)
-        if not rules["available"]:
-            code = "VALIDATION_ERROR" if rules.get("failure") == "validation" else "CONFLICT"
-            raise ApiError(code, rules["reason"] or "Listing is not available",
-                           "check_out" if code == "VALIDATION_ERROR" else None)
-        b = BookingFactory.create(
-            self.store.bookings, li, customer.id, check_in, check_out, guests, today,
-            check_in_time=check_in_time, check_out_time=check_out_time)
-        # SqlBackedStore.save performs one INSERT transaction. PostgreSQL's
-        # confirmed-booking exclusion constraint is the final race-safe guard;
-        # an IntegrityError is translated by the store into a 409 ApiError.
-        return self.store.save(b)
+        mediator = BookingMediator(self.store, ListingService(self.store).availability,
+                                   self.events, self.quote)
+        return mediator.place(li, customer.id, check_in, check_out, guests, today,
+                              check_in_time, check_out_time)
 
     def cancel(self, customer: User, booking_id: int) -> Booking:
         if customer.role != UserRole.CUSTOMER:
@@ -50,6 +50,7 @@ class BookingService:
             raise ApiError("FORBIDDEN" if "owner" in " ".join(errors) else "VALIDATION_ERROR",
                            "; ".join(errors))
         booking_state_for(b.status).cancel(b, datetime.now(timezone.utc))
+        self._publish(BookingCancelled, b)
         return b
 
     def complete(self, customer: User, booking_id: int, today: date) -> Booking:
@@ -67,4 +68,5 @@ class BookingService:
         if b.check_out > today:
             raise ApiError("VALIDATION_ERROR", "Stay has not ended yet (check_out is in the future)")
         state.complete(b)
+        self._publish(BookingCompleted, b)
         return b

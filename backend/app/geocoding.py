@@ -12,6 +12,8 @@ Design notes
   misses briefly) to respect Nominatim's usage policy and keep search fast.
 * Provider credentials are never part of :class:`GeocodeResult` and are never
   echoed in error messages returned to callers.
+
+Pattern: Template Method (providers), Adapter (provider -> GeocodeResult), Decorator (RetryingProvider).
 """
 from __future__ import annotations
 
@@ -122,11 +124,41 @@ def provider_name() -> str:
     return "google" if google_api_key() else "nominatim"
 
 
+class RetryingProvider:
+    """Decorator: retry transient outages of the wrapped provider.
+
+    ``GeocodeNotFound`` is a definitive answer and is never retried.
+    """
+
+    def __init__(self, inner: GeocodingProvider, attempts: int = 2) -> None:
+        self._inner = inner
+        self.attempts = attempts
+        self.name = inner.name
+
+    def geocode(self, address: str) -> GeocodeResult:
+        for _ in range(self.attempts - 1):
+            try:
+                return self._inner.geocode(address)
+            except GeocodingUnavailable:
+                continue  # a definitive GeocodeNotFound propagates immediately
+        return self._inner.geocode(address)
+
+
+def _configured_retries() -> int:
+    try:
+        return int(_env("STAYNEST_GEOCODING_RETRIES", "1"))
+    except ValueError:
+        return 1
+
+
 def get_provider(name: str | None = None) -> GeocodingProvider:
     selected = (name or provider_name()).lower()
     if selected == "google" and google_api_key():
-        return GoogleGeocodingProvider(google_api_key())
-    return NominatimProvider()
+        provider: GeocodingProvider = GoogleGeocodingProvider(google_api_key())
+    else:
+        provider = NominatimProvider()
+    retries = _configured_retries()
+    return RetryingProvider(provider, retries) if retries > 1 else provider
 
 
 # ---------------------------------------------------------------------------

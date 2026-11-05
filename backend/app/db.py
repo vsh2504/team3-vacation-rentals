@@ -19,6 +19,8 @@ Tables are created by create_tables() and match
 backend/db/migrations/001_init.sql exactly, so the same schema can be
 applied to Azure Database for PostgreSQL by running that SQL file
 (US31) without running this Python code.
+
+Pattern: Data Mapper (one mapper per entity) behind a Repository-style store.
 """
 import json
 import os

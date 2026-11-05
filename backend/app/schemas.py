@@ -1,5 +1,8 @@
 """Pydantic DTOs — the OpenAPI source of truth (Week 1 frozen fields).
-Field names here are the JSON field names in docs/contracts.md."""
+Field names here are the JSON field names in docs/contracts.md.
+
+Pattern: Data Transfer Object.
+"""
 from datetime import date, time, timedelta
 from pydantic import BaseModel, Field, field_validator, model_validator
 

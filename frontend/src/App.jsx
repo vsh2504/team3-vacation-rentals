@@ -14,15 +14,11 @@ import BookingsPage from './pages/BookingsPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
 import AnalyticsPage from './pages/AnalyticsPage.jsx';
 import HostBookingsPage from './pages/HostBookingsPage.jsx';
+import { useAuth } from './state/authStore.js';
+import { homePathFor, isActive, navLinksFor, roleBadgeVariant } from './services/navigation.js';
 
 export default function App() {
-  const [auth, setAuth] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('staynest_auth') || 'null');
-    } catch {
-      return null;
-    }
-  });
+  const { auth, login, logout: endSession } = useAuth();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -34,15 +30,12 @@ export default function App() {
   }, [location.pathname]);
 
   function onAuth(token, user) {
-    const a = { token, user };
-    setAuth(a);
-    localStorage.setItem('staynest_auth', JSON.stringify(a));
+    login(token, user);
     navigate('/');
   }
 
   function logout() {
-    setAuth(null);
-    localStorage.removeItem('staynest_auth');
+    endSession();
     navigate('/');
   }
 
@@ -50,15 +43,8 @@ export default function App() {
   const isHost = role === 'HOST';
   const isAdmin = role === 'ADMIN';
   // Hosts and admins never search or book stays; send them to their own home.
-  const homePath = isHost ? '/host' : isAdmin ? '/admin' : '/';
+  const homePath = homePathFor(role);
   const guestOnly = el => (isHost || isAdmin ? <Navigate to={homePath} replace /> : el);
-
-  // Role badge variant helper
-  function getRoleBadgeVariant(r) {
-    if (r === 'ADMIN') return 'accent';
-    if (r === 'HOST') return 'primary';
-    return 'neutral';
-  }
 
   return (
     <div className="app">
@@ -109,59 +95,12 @@ export default function App() {
             role="navigation"
             aria-label="Main navigation"
           >
-            {!isHost && !isAdmin && (
-              <Link
-                to="/"
-                className={`nav-link ${location.pathname === '/' ? 'is-active' : ''}`}
-              >
-                Search
+            {navLinksFor(role).map(item => (
+              <Link key={item.to} to={item.to}
+                className={`nav-link ${isActive(item, location.pathname) ? 'is-active' : ''}`}>
+                {item.label}
               </Link>
-            )}
-
-            {role === 'HOST' && (
-              <Link
-                to="/host"
-                className={`nav-link ${location.pathname === '/host' ? 'is-active' : ''}`}
-              >
-                My listings
-              </Link>
-            )}
-
-            {role === 'HOST' && (
-              <Link
-                to="/host/bookings"
-                className={`nav-link ${location.pathname.startsWith('/host/bookings') ? 'is-active' : ''}`}
-              >
-                Bookings &amp; reviews
-              </Link>
-            )}
-
-            {auth && !isHost && !isAdmin && (
-              <Link
-                to="/bookings"
-                className={`nav-link ${location.pathname.startsWith('/bookings') ? 'is-active' : ''}`}
-              >
-                My bookings
-              </Link>
-            )}
-
-            {role === 'ADMIN' && (
-              <Link
-                to="/admin"
-                className={`nav-link ${location.pathname.startsWith('/admin') ? 'is-active' : ''}`}
-              >
-                Approvals queue
-              </Link>
-            )}
-
-            {(role === 'HOST' || role === 'ADMIN') && (
-              <Link
-                to="/analytics"
-                className={`nav-link ${location.pathname.startsWith('/analytics') ? 'is-active' : ''}`}
-              >
-                Analytics
-              </Link>
-            )}
+            ))}
 
             <span className="nav-divider" aria-hidden="true"></span>
 
@@ -172,7 +111,7 @@ export default function App() {
                   <span className="user-email" title={auth.user?.email}>
                     {auth.user?.email}
                   </span>
-                  <Badge variant={getRoleBadgeVariant(role)}>
+                  <Badge variant={roleBadgeVariant(role)}>
                     {role}
                   </Badge>
                   <button

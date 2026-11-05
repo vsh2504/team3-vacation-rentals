@@ -12,6 +12,8 @@ Endpoints:
   GET  /host/listings                (own listings only, with moderation status)
 Only APPROVED listings appear in search. Book button logic in the UI uses
 the same availability rule exposed here (not a second rule in React).
+
+Pattern: Controller (MVC) over the ListingService facade.
 """
 from datetime import date, time
 

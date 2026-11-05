@@ -15,3 +15,4 @@ frontend/dist/
 .conductor/
 backend/uploads/
 .coverage
+frontend/coverage/

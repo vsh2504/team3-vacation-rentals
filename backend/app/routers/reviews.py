@@ -6,7 +6,10 @@ Endpoints:
   GET  /host/analytics?days=30|60|90&zip=
   GET  /admin/analytics?days=30|60|90&zip=
 Analytics endpoints are in analytics.py — same owner, same core API.
-Host analytics scope = caller's listings only; admin scope = all hosts."""
+Host analytics scope = caller's listings only; admin scope = all hosts.
+
+Pattern: Controller (MVC) over the ReviewService facade.
+"""
 from datetime import date
 from fastapi import APIRouter, Depends
 from ..core.errors import ok

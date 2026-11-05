@@ -4,6 +4,8 @@ Routers do Pydantic validation -> service call -> JSON. No rule in React.
 The package re-exports the public use-case classes so callers can keep
 ``from app.services import ListingService`` while each module owns a single
 responsibility.
+
+Pattern: Facade.
 """
 from .analytics_service import AnalyticsService
 from .auth_service import AuthService

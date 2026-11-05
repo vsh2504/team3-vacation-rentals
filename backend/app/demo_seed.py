@@ -9,6 +9,8 @@ Demo logins (password ``password123``): customer1@staynest.local,
 customer2@staynest.local, customer3@staynest.local.
 customer1 also has one completed stay with no review yet, to try the
 review form from "My bookings".
+
+Pattern: Builder.
 """
 from datetime import date, timedelta
 from decimal import Decimal
@@ -39,6 +41,36 @@ STAYS = (
 )
 
 
+class StayBuilder:
+    """Pattern: Builder - assembles one completed demo stay step by step."""
+
+    def __init__(self, listing, customer_id: int) -> None:
+        self._listing = listing
+        self._customer_id = customer_id
+        self._id = 0
+        self._check_in = self._check_out = None
+        self._nights = 0
+
+    def booking_id(self, booking_id: int) -> "StayBuilder":
+        self._id = booking_id
+        return self
+
+    def ending(self, today: date, days_ago: int, nights: int) -> "StayBuilder":
+        self._check_out = today - timedelta(days=days_ago)
+        self._check_in = self._check_out - timedelta(days=nights)
+        self._nights = nights
+        return self
+
+    def build(self) -> Booking:
+        listing = self._listing
+        return Booking(
+            id=self._id, listing_id=listing.id, customer_id=self._customer_id,
+            check_in=self._check_in, check_out=self._check_out,
+            guests=min(2, listing.max_guests),
+            total_price=Decimal(str(listing.price_per_night)) * self._nights,
+            status=BookingStatus.COMPLETED, booked_date=self._check_in - timedelta(days=14))
+
+
 def seed_demo_reviews(store, today: date | None = None) -> bool:
     """Add demo customers, completed stays and reviews. Returns True if seeded."""
     today = today or date.today()
@@ -62,13 +94,9 @@ def seed_demo_reviews(store, today: date | None = None) -> bool:
         listing = approved.get(listing_id)
         if listing is None:
             continue
-        check_out = today - timedelta(days=ago)
-        check_in = check_out - timedelta(days=nights)
-        booking = store.save(Booking(
-            id=next_booking + index, listing_id=listing.id, customer_id=customers[who].id,
-            check_in=check_in, check_out=check_out, guests=min(2, listing.max_guests),
-            total_price=Decimal(str(listing.price_per_night)) * nights,
-            status=BookingStatus.COMPLETED, booked_date=check_in - timedelta(days=14)))
+        booking = store.save(StayBuilder(listing, customers[who].id)
+                             .booking_id(next_booking + index)
+                             .ending(today, ago, nights).build())
         if rating is not None:
             store.save(Review(id=next_review, booking_id=booking.id, listing_id=listing.id,
                               customer_id=customers[who].id, rating=rating, comment=comment or ""))

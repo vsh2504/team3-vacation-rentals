@@ -4,24 +4,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import ListingCard from '../components/ListingCard.jsx';
 import MapView from '../components/MapView.jsx';
 import { api, qs } from '../api/client.js';
+import { nightsBetween, validateSearch } from '../validation/search.js';
 import { PlaceSuggestions, usePlacesAutocomplete } from '../usePlacesAutocomplete.jsx';
 import seed from '../../../backend/data/listings_seed.json';
-
-const DAY = 86400000;
-const nightsBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / DAY);
-
-function validate(f) {
-  const e = {};
-  if (!(Number(f.guests) >= 1)) e.guests = 'Enter at least 1 guest.';
-  if (f.checkIn && !f.checkOut) e.checkOut = 'Choose a check-out date.';
-  if (f.checkOut && !f.checkIn) e.checkIn = 'Choose a check-in date.';
-  if (f.checkIn && f.checkOut) {
-    const n = nightsBetween(f.checkIn, f.checkOut);
-    if (n <= 0) e.checkOut = 'Check-out must be after check-in.';
-    else if (n > 14) e.checkOut = `Stays are limited to 14 nights (you chose ${n}).`;
-  }
-  return e;
-}
 
 const Field = ({ id, label, error: er, hint, wide, children }) => (
   <div className={`field-group${wide ? ' field-group-wide' : ''}`}>
@@ -51,7 +36,7 @@ export default function SearchPage() {
 
   async function run(e, override) {
     if (e) e.preventDefault();
-    const v = validate(f);
+    const v = validateSearch(f);
     setErrors(v);
     if (Object.keys(v).length) { setError('Please fix the highlighted fields.'); return; }
     setError(''); setStatus('loading'); setSelectedId(null);
