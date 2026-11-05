@@ -24,7 +24,7 @@ export default function SearchPage() {
       setResults(Array.isArray(data) ? data : []); setSource('API');
     } catch (err) {
       setError(`${err.message} — showing seed fallback.`);
-      setResults(seed.filter(l => l.status === 'APPROVED' && (!zip || l.zip === zip) && (!city || l.city.toLowerCase() === city.toLowerCase()) && l.max_guests >= guests));
+      setResults(seed.filter(l => l.status === 'APPROVED' && (!zip || l.zip === zip) && (!city || l.city.toLowerCase() === city.toLowerCase()) && (!state || l.state.toLowerCase() === state.toLowerCase()) && l.max_guests >= guests));
       setSource('seed fallback');
     }
   }

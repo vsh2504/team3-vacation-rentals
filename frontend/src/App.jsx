@@ -3,6 +3,7 @@
 // Pages themselves are owned by their feature owners (see their headers).
 import React, { useEffect, useState } from 'react';
 import { Link, Route, Routes, useNavigate } from 'react-router-dom';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 import SearchPage from './pages/SearchPage.jsx';
 import ListingDetailPage from './pages/ListingDetailPage.jsx';
 import AuthPage from './pages/AuthPage.jsx';
@@ -38,15 +39,17 @@ export default function App() {
             : <Link to="/auth">Log in / Register</Link>}
         </nav>
       </header>
-      <Routes>
-        <Route path="/" element={<SearchPage />} />
-        <Route path="/listings/:id" element={<ListingDetailPage auth={auth} />} />
-        <Route path="/auth" element={<AuthPage onAuth={onAuth} />} />
-        <Route path="/host" element={<HostPage auth={auth} />} />
-        <Route path="/bookings" element={<BookingsPage auth={auth} />} />
-        <Route path="/admin" element={<AdminPage auth={auth} />} />
-        <Route path="/analytics" element={<AnalyticsPage auth={auth} />} />
-      </Routes>
+      <ErrorBoundary>
+        <Routes>
+          <Route path="/" element={<SearchPage />} />
+          <Route path="/listings/:id" element={<ListingDetailPage auth={auth} />} />
+          <Route path="/auth" element={<AuthPage onAuth={onAuth} />} />
+          <Route path="/host" element={<HostPage auth={auth} />} />
+          <Route path="/bookings" element={<BookingsPage auth={auth} />} />
+          <Route path="/admin" element={<AdminPage auth={auth} />} />
+          <Route path="/analytics" element={<AnalyticsPage auth={auth} />} />
+        </Routes>
+      </ErrorBoundary>
       <footer><p><small>StayNest (Team 3) — API: /docs on the backend. If the API is not running, search falls back to seed data.</small></p></footer>
     </div>
   );
