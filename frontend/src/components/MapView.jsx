@@ -9,8 +9,9 @@ import { Link } from 'react-router-dom';
 // address/city/zip in SearchPage — full geocoding needs a Maps key
 // (see docs/wireframes.md screen 3, and RUNNING.md).
 export default function MapView({ listings }) {
-  if (!listings.length) return <p>No listings to show on the map.</p>;
-  const first = listings[0];
+  const items = listings || [];
+  if (!items.length) return <p>No listings to show on the map.</p>;
+  const first = items[0];
   const key = import.meta.env.VITE_GOOGLE_MAPS_KEY;
   const src = key
     ? `https://www.google.com/maps/embed/v1/view?key=${key}&center=${first.lat},${first.lng}&zoom=12`
@@ -19,7 +20,7 @@ export default function MapView({ listings }) {
     <div className="map-box">
       <strong>Map — {key ? 'Google Maps' : 'OpenStreetMap (no key needed)'} — pins = search results</strong>
       <iframe title="map" src={src} width="100%" height="280" style={{ border: 0, marginTop: 8 }} loading="lazy" />
-      <ul>{listings.map(l => (
+      <ul>{items.map(l => (
         <li key={l.id}><Link to={`/listings/${l.id}`}>📍 {l.title}</Link> — {l.lat}, {l.lng} — {l.city} {l.zip}</li>
       ))}</ul>
     </div>

@@ -103,3 +103,41 @@ Demo in 4 moments, in order: see docs/demo-script.md.
 DB mode: `STAYNEST_DB_URL=sqlite:///./staynest.db uvicorn app.main:app --port 8000`
 from backend/ — data persists across restarts. Without it, the in-memory
 store + seed is used and resets on restart.
+
+## Local run — two terminals, in order, no DB needed (PR 15)
+
+**You do NOT need a database.** Default is in-memory + seed data.
+A database is opt-in only (STAYNEST_DB_URL, Sprint 3). If you see a
+blank page, it is almost certainly NOT a DB problem — see below.
+
+```bash
+# Terminal 1 — backend FIRST (must be running before the frontend)
+cd team3-vacation-rentals
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r backend/requirements.txt
+cd backend && uvicorn app.main:app --reload --port 8000
+# Check: curl http://localhost:8000/health  -> {"status":"ok"}
+
+# Terminal 2 — frontend SECOND
+cd team3-vacation-rentals/frontend
+npm install && npm run dev
+# Open: http://localhost:5173
+# Check: bash scripts/check_local.sh  (from repo root)
+```
+
+**Why the 2026-11-04 console crash happened (fixed in PR 15):**
+1. Vite proxy had no rewrite, so `/api/listings/search` was forwarded
+   to the backend as `/api/listings/search`, FastAPI returned 404
+   `{"detail": "Not Found"}`.
+2. The API client only threw when `success === false`. A 404 detail
+   body has no `success` field, so it returned `data === undefined`.
+3. SearchPage then crashed on `results.length` (line 45 in the screenshot).
+Fix: proxy now strips `/api` (dev + preview), the client throws on any
+non-OK status or missing data, and SearchPage/MapView guard against
+non-array results — a bad API response now shows an error + seed
+fallback, never a blank page.
+
+**If you still see the old page:** you are on old code. `git pull
+origin main`, stop BOTH servers (Ctrl+C in each terminal), restart
+them in order above, then hard-refresh (Ctrl+Shift+R). Vite config
+changes need a full dev-server restart, not just a browser refresh.
