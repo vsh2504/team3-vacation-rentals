@@ -8,7 +8,15 @@ const BASE = import.meta.env.VITE_API_URL || '/api';
 async function req(path, opts = {}) {
   const res = await fetch(`${BASE}${path}`, { headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) }, ...opts });
   const body = await res.json().catch(() => null);
+  // PR 15 fix: previously only body.success === false threw. A FastAPI
+  // 404 body {"detail": "Not Found"} has no success field, so it fell
+  // through and returned body.data === undefined, which crashed
+  // SearchPage on results.length. Now any non-OK status, any
+  // success:false, and any missing data all throw, so callers fall
+  // back (search -> seed) instead of crashing.
+  if (!res.ok) throw new Error(body?.error?.message || body?.detail || `Request failed: ${path} (${res.status})`);
   if (!body || body.success === false) throw new Error(body?.error?.message || `Request failed: ${path} (${res.status})`);
+  if (body.data === undefined) throw new Error(`Request failed: ${path} — no data in response`);
   return body.data;
 }
 const authH = (token) => ({ Authorization: `Bearer ${token}` });

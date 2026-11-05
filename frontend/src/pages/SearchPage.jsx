@@ -21,7 +21,7 @@ export default function SearchPage() {
     setError('');
     try {
       const data = await api.search({ zip, city, state, guests, check_in: checkIn, check_out: checkOut });
-      setResults(data); setSource('API');
+      setResults(Array.isArray(data) ? data : []); setSource('API');
     } catch (err) {
       setError(`${err.message} — showing seed fallback.`);
       setResults(seed.filter(l => l.status === 'APPROVED' && (!zip || l.zip === zip) && (!city || l.city.toLowerCase() === city.toLowerCase()) && l.max_guests >= guests));
@@ -42,9 +42,9 @@ export default function SearchPage() {
         <button type="submit">Search</button>
       </form>
       {error && <p role="alert">{error}</p>}
-      <p>{results.length} listings match ({source}).</p>
-      <MapView listings={results} />
-      <div className="results-grid">{results.map(l => <ListingCard key={l.id} listing={l} />)}</div>
+      <p>{(results || []).length} listings match ({source}).</p>
+      <MapView listings={results || []} />
+      <div className="results-grid">{(results || []).map(l => <ListingCard key={l.id} listing={l} />)}</div>
     </section>
   );
 }
