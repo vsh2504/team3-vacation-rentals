@@ -1,4 +1,6 @@
 import React from 'react';
+import Alert from './ui/Alert.jsx';
+import Button from './ui/Button.jsx';
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -17,14 +19,19 @@ export default class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <section style={{ padding: '2rem', textAlign: 'center' }}>
-          <h2>Something went wrong loading this view.</h2>
-          <p role="alert" style={{ color: 'red' }}>
-            {this.state.error?.message || 'An unexpected rendering error occurred.'}
-          </p>
-          <button onClick={() => this.setState({ hasError: false, error: null })}>
-            Try again
-          </button>
+        <section className="page-card" style={{ maxWidth: '640px', margin: '2rem auto', textAlign: 'center', padding: '2rem' }}>
+          <h2>Something went wrong loading this view</h2>
+          <Alert variant="error" title="Rendering error" className="my-4">
+            {this.state.error?.message || 'An unexpected application error occurred while displaying this page.'}
+          </Alert>
+          <div style={{ marginTop: '1.5rem' }}>
+            <Button
+              variant="primary"
+              onClick={() => this.setState({ hasError: false, error: null })}
+            >
+              Try again
+            </Button>
+          </div>
         </section>
       );
     }

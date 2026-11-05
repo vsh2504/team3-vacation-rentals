@@ -7,6 +7,7 @@ Endpoints:
   GET  /admin/analytics?days=30|60|90&zip=
 Analytics endpoints are in analytics.py — same owner, same core API.
 Host analytics scope = caller's listings only; admin scope = all hosts."""
+from datetime import date
 from fastapi import APIRouter, Depends
 from ..core.errors import ok
 from ..schemas import ReviewIn
@@ -17,8 +18,10 @@ router = APIRouter(tags=["reviews/analytics — Prajval Sudhir"])
 
 @router.post("/reviews")
 def submit(body: ReviewIn, user=Depends(get_current_user), store=Depends(get_store)):
-    r = ReviewService(store).submit(user, body.booking_id, body.rating, body.comment)
-    return ok({"id": r.id, "booking_id": r.booking_id, "listing_id": r.listing_id, "rating": r.rating})
+    r = ReviewService(store).submit(
+        user, body.booking_id, body.rating, body.comment, today=date.today())
+    return ok({"id": r.id, "booking_id": r.booking_id, "listing_id": r.listing_id,
+               "customer_id": r.customer_id, "rating": r.rating, "comment": r.comment})
 
 @router.get("/listings/{listing_id}/reviews")
 def listing_reviews(listing_id: int, store=Depends(get_store)):

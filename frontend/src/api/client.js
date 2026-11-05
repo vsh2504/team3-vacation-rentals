@@ -19,6 +19,11 @@ async function req(path, opts = {}) {
   if (body.data === undefined) throw new Error(`Request failed: ${path} — no data in response`);
   return body.data;
 }
+// Builds "?a=1&b=2", dropping empty values.
+export const qs = (q = {}) => {
+  const e = Object.entries(q).filter(([, v]) => v !== '' && v != null);
+  return e.length ? `?${new URLSearchParams(e)}` : '';
+};
 const authH = (token) => ({ Authorization: `Bearer ${token}` });
 export const api = {
   health: () => req('/health'),
@@ -31,8 +36,10 @@ export const api = {
   reject: (t, id) => req(`/admin/listings/${id}/reject`, { method: 'POST', headers: authH(t) }),
   adminRemove: (t, id) => req(`/admin/listings/${id}`, { method: 'DELETE', headers: authH(t) }),
   // Search / listings (Vinayak)
-  search: (q) => req(`/listings/search?${new URLSearchParams(Object.fromEntries(Object.entries(q).filter(([, v]) => v !== '' && v != null)))}`),
-  listing: (id) => req(`/listings/${id}`),
+  search: (q) => req(`/listings/search${qs(q)}`),
+  listing: (id, q = {}) => req(`/listings/${id}${qs(q)}`),
+  listingAvailability: (id, q = {}) => req(`/listings/${id}/availability${qs(q)}`),
+  geocode: (address) => req(`/geocode?${new URLSearchParams({ address })}`),
   hostListings: (t) => req('/host/listings', { headers: authH(t) }),
   createListing: (t, b) => req('/listings', { method: 'POST', headers: authH(t), body: JSON.stringify(b) }),
   updateListing: (t, id, b) => req(`/listings/${id}`, { method: 'PUT', headers: authH(t), body: JSON.stringify(b) }),

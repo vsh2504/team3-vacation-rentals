@@ -2,6 +2,7 @@
 Run: python3 backend/tests/test_bookings.py -v
 """
 import sys, unittest
+from datetime import time
 sys.path.insert(0, "backend")
 from fastapi.testclient import TestClient
 from app.main import app, seed_demo_data
@@ -33,6 +34,47 @@ class TestBookings(unittest.TestCase):
         self.assertEqual("CONFIRMED", r.json()["data"]["status"])
         mine = self.c.get("/bookings/me", headers=self.h).json()["data"]
         self.assertIn(r.json()["data"]["id"], [b["id"] for b in mine])
+
+    def test_booking_uses_same_time_rule_as_availability(self):
+        listing = next(item for item in STORE.listings if item.id == self.lid)
+        listing.operating_start_time = time(8, 0)
+        listing.operating_end_time = time(20, 0)
+
+        available = self.c.get(
+            f"/listings/{self.lid}/availability",
+            params={"check_in": "2027-05-01", "check_out": "2027-05-04",
+                    "check_in_time": "07:00", "check_out_time": "11:00", "guests": 2},
+        ).json()["data"]
+        self.assertFalse(available["available"])
+
+        booked = self._book(check_in_time="07:00", check_out_time="11:00")
+        self.assertEqual(409, booked.status_code, booked.text)
+        self.assertEqual(0, len(STORE.bookings))
+
+    def test_booking_uses_listing_times_when_request_omits_times(self):
+        listing = next(item for item in STORE.listings if item.id == self.lid)
+        listing.check_in_time = time(18, 0)
+        listing.check_out_time = time(9, 30)
+
+        booked = self._book()
+        self.assertEqual(200, booked.status_code, booked.text)
+        self.assertEqual("18:00", booked.json()["data"]["check_in_time"])
+        self.assertEqual("09:30", booked.json()["data"]["check_out_time"])
+
+    def test_booking_response_has_listing_snapshot_map_and_stay_state(self):
+        booking = self._book().json()["data"]
+        self.assertEqual("upcoming", booking["stay_state"])
+        self.assertEqual("Downtown Loft with Skyline View #1",
+                         booking["listing"]["title"])
+        self.assertEqual("100 Demo Street", booking["location"]["address"])
+        self.assertEqual(37.3382, booking["location"]["lat"])
+        self.assertIn("openstreetmap.org", booking["location"]["map_url"])
+        self.assertEqual(f"/listings/{self.lid}", booking["listing"]["url"])
+
+        next(item for item in STORE.listings if item.id == self.lid).title = "Renamed later"
+        historical = self.c.get("/bookings/me", headers=self.h).json()["data"][0]
+        self.assertEqual("Downtown Loft with Skyline View #1",
+                         historical["listing"]["title"])
     def test_overlap_409_and_checkout_day_free(self):
         self.assertEqual(200, self._book().status_code)
         r = self._book(check_in="2027-05-02", check_out="2027-05-05")
@@ -56,6 +98,10 @@ class TestBookings(unittest.TestCase):
         bid2 = self._book(check_in="2027-06-01", check_out="2027-06-03").json()["data"]["id"]
         r = self.c.post(f"/bookings/{bid2}/cancel", headers={"Authorization": f"Bearer {otok}"})
         self.assertEqual(403, r.status_code)
+
+        cancelled = self.c.get("/bookings/me", headers=self.h).json()["data"][0]
+        self.assertEqual("cancelled", cancelled["stay_state"])
+        self.assertIsNotNone(cancelled["cancelled_at"])
     def test_complete_past_only_then_review_unlocked(self):
         bid = self._book(check_in="2026-01-01", check_out="2026-01-03").json()["data"]["id"]
         r = self.c.post(f"/bookings/{bid}/complete", headers=self.h)
