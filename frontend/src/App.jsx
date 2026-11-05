@@ -2,7 +2,8 @@
 // Feature: Identity, Platform & Admin Control — app shell, role nav, auth state.
 // Polished application shell and shared UI system (Step 3.1).
 import React, { useEffect, useState } from 'react';
-import { Link, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import ThemeToggle from './components/ThemeToggle.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import Badge from './components/ui/Badge.jsx';
 import SearchPage from './pages/SearchPage.jsx';
@@ -12,6 +13,7 @@ import HostPage from './pages/HostPage.jsx';
 import BookingsPage from './pages/BookingsPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
 import AnalyticsPage from './pages/AnalyticsPage.jsx';
+import HostBookingsPage from './pages/HostBookingsPage.jsx';
 
 export default function App() {
   const [auth, setAuth] = useState(() => {
@@ -45,6 +47,11 @@ export default function App() {
   }
 
   const role = auth?.user?.role;
+  const isHost = role === 'HOST';
+  const isAdmin = role === 'ADMIN';
+  // Hosts and admins never search or book stays; send them to their own home.
+  const homePath = isHost ? '/host' : isAdmin ? '/admin' : '/';
+  const guestOnly = el => (isHost || isAdmin ? <Navigate to={homePath} replace /> : el);
 
   // Role badge variant helper
   function getRoleBadgeVariant(r) {
@@ -63,11 +70,12 @@ export default function App() {
       <header className="site-header" role="banner">
         <div className="header-container">
           <div className="brand-wrapper">
-            <Link to="/" className="logo-anchor" aria-label="StayNest Home">
+            <Link to={homePath} className="logo-anchor" aria-label="StayNest Home">
               <span className="logo">StayNest</span>
             </Link>
-            <span className="logo-badge" aria-hidden="true">Vacation Rentals</span>
           </div>
+
+          <ThemeToggle />
 
           {/* Mobile menu toggle (Requirement 8.2) */}
           <button
@@ -101,23 +109,34 @@ export default function App() {
             role="navigation"
             aria-label="Main navigation"
           >
-            <Link
-              to="/"
-              className={`nav-link ${location.pathname === '/' ? 'is-active' : ''}`}
-            >
-              Search
-            </Link>
+            {!isHost && !isAdmin && (
+              <Link
+                to="/"
+                className={`nav-link ${location.pathname === '/' ? 'is-active' : ''}`}
+              >
+                Search
+              </Link>
+            )}
 
             {role === 'HOST' && (
               <Link
                 to="/host"
-                className={`nav-link ${location.pathname.startsWith('/host') ? 'is-active' : ''}`}
+                className={`nav-link ${location.pathname === '/host' ? 'is-active' : ''}`}
               >
                 My listings
               </Link>
             )}
 
-            {auth && (
+            {role === 'HOST' && (
+              <Link
+                to="/host/bookings"
+                className={`nav-link ${location.pathname.startsWith('/host/bookings') ? 'is-active' : ''}`}
+              >
+                Bookings &amp; reviews
+              </Link>
+            )}
+
+            {auth && !isHost && !isAdmin && (
               <Link
                 to="/bookings"
                 className={`nav-link ${location.pathname.startsWith('/bookings') ? 'is-active' : ''}`}
@@ -181,30 +200,23 @@ export default function App() {
       {/* Main Content Landmark (Requirement 8.4) */}
       <main id="main-content" className="site-main" tabIndex="-1">
         <ErrorBoundary>
+          <div key={location.pathname} className="page-enter">
           <Routes>
-            <Route path="/" element={<SearchPage />} />
+            <Route path="/" element={guestOnly(<SearchPage />)} />
             <Route path="/listings/:id" element={<ListingDetailPage auth={auth} />} />
             <Route path="/auth" element={<AuthPage onAuth={onAuth} />} />
+            <Route path="/host/bookings" element={<HostBookingsPage auth={auth} />} />
             <Route path="/host" element={<HostPage auth={auth} />} />
-            <Route path="/bookings" element={<BookingsPage auth={auth} />} />
+            <Route path="/bookings" element={guestOnly(<BookingsPage auth={auth} />)} />
             <Route path="/admin" element={<AdminPage auth={auth} />} />
             <Route path="/analytics" element={<AnalyticsPage auth={auth} />} />
           </Routes>
+          </div>
         </ErrorBoundary>
       </main>
 
       <footer className="site-footer" role="contentinfo">
-        <p>
-          <small>
-            StayNest Vacation Rentals &bull; Harbor-town design system &bull;{' '}
-            <a href="/docs" target="_blank" rel="noreferrer">Interactive API Docs (/docs)</a>
-          </small>
-        </p>
-        <p>
-          <small>
-            API authorization remains the security boundary. Hiding routes is UX, not security.
-          </small>
-        </p>
+        <p><small>StayNest Vacation Rentals</small></p>
       </footer>
     </div>
   );

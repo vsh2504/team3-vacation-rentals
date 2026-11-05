@@ -6,6 +6,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client.js';
+import MapView from '../components/MapView.jsx';
+import { hasGoogleMaps } from '../googleMaps.js';
+import { PlaceSuggestions, usePlacesAutocomplete } from '../usePlacesAutocomplete.jsx';
 import { Alert, Badge, Button, Card, Spinner } from '../components/ui/index.js';
 
 const POPULAR_AMENITIES = [
@@ -66,6 +69,21 @@ export default function HostPage({ auth }) {
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [lookupMsg, setLookupMsg] = useState(null);
   const [actionMsg, setActionMsg] = useState('');
+  // Google address suggestions: fills street, city, state, ZIP and coordinates in one pick.
+  const addressAC = usePlacesAutocomplete((p) => {
+    setForm((prev) => ({
+      ...prev,
+      address: p.street || p.formatted.split(',')[0] || prev.address,
+      city: p.city || prev.city,
+      state: p.state ? p.state.slice(0, 2).toUpperCase() : prev.state,
+      zip: p.zip || prev.zip,
+      lat: p.lat != null ? Number(p.lat.toFixed(6)) : prev.lat,
+      lng: p.lng != null ? Number(p.lng.toFixed(6)) : prev.lng,
+    }));
+    setLookupMsg({ type: 'success', text: `Address selected from Google Maps: ${p.formatted}. City, ZIP and coordinates were filled in.` });
+  });
+  const [uploading, setUploading] = useState(false);
+  const [uploadMsg, setUploadMsg] = useState(null);
   const [error, setError] = useState('');
   const [removeConfirmId, setRemoveConfirmId] = useState(null);
   const [expandedCompletenessId, setExpandedCompletenessId] = useState(null);
@@ -103,7 +121,7 @@ export default function HostPage({ auth }) {
           <div className="empty-state" style={{ margin: 0 }}>
             <h3>Host sign-in required</h3>
             <p style={{ marginBottom: '1rem' }}>
-              Please sign in with your Host account to manage vacation rentals, view moderation status, and publish new properties.
+              Sign in with your host account to manage your listings.
             </p>
             <Link to="/auth" className="btn btn-primary">
               Sign In as Host
@@ -145,7 +163,7 @@ export default function HostPage({ auth }) {
     return { checks, passed, total: checks.length, score, isComplete, missing };
   }
 
-  // Address geocoding helper (OpenStreetMap Nominatim default)
+  // Address geocoding helper (server picks Google when configured, else Nominatim)
   async function handleAddressLookup() {
     const queryParts = [form.address, form.city, form.state, form.zip].filter(Boolean);
     const query = queryParts.join(', ').trim();
@@ -169,7 +187,7 @@ export default function HostPage({ auth }) {
       }));
       setLookupMsg({
         type: 'success',
-        text: `Coordinates resolved: ${res.lat.toFixed(4)}, ${res.lng.toFixed(4)} via ${res.provider || 'OpenStreetMap'}.`,
+        text: `Coordinates resolved: ${res.lat.toFixed(4)}, ${res.lng.toFixed(4)} via ${res.provider === 'google' ? 'Google Maps' : (res.provider || 'geocoder')}.`,
       });
     } catch (err) {
       setLookupMsg({
@@ -340,6 +358,30 @@ export default function HostPage({ auth }) {
     }
   }
 
+  // Upload chosen files and append their URLs to the photos/videos fields.
+  async function handleFiles(e) {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (!files.length) return;
+    setUploading(true);
+    setUploadMsg(null);
+    const photos = [], videos = [], errors = [];
+    for (const file of files) {
+      try {
+        const out = await api.uploadMedia(auth.token, file);
+        (out.kind === 'video' ? videos : photos).push(out.url);
+      } catch (err) {
+        errors.push(`${file.name}: ${err.message}`);
+      }
+    }
+    const join = (cur, add) => [cur.trim(), ...add].filter(Boolean).join('\n');
+    setForm((f) => ({ ...f, photos: join(f.photos, photos), videos: join(f.videos, videos) }));
+    setUploading(false);
+    setUploadMsg(errors.length
+      ? { type: 'error', text: errors.join(' | ') }
+      : { type: 'success', text: `Uploaded ${photos.length} photo(s) and ${videos.length} video(s).` });
+  }
+
   // Parse photos for live preview in form
   const previewPhotos = form.photos
     .split(/[\n,]/)
@@ -351,9 +393,6 @@ export default function HostPage({ auth }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
         <div>
           <h2 id="host-page-heading" style={{ margin: 0 }}>Host Management Portal</h2>
-          <p className="card-meta" style={{ margin: '0.25rem 0 0' }}>
-            Maintain your rental inventory, track administrator approval status, and update property details.
-          </p>
         </div>
         <Button
           type="button"
@@ -407,12 +446,6 @@ export default function HostPage({ auth }) {
             {listings.filter((l) => l.status === 'PENDING_APPROVAL').length}
           </strong>
         </div>
-        <div style={{ background: 'var(--sn-surface-soft)', padding: '1rem', borderRadius: 'var(--sn-radius-md)', border: '1px solid var(--sn-line)' }}>
-          <span className="card-meta" style={{ display: 'block' }}>Host Account</span>
-          <span style={{ fontWeight: 600, fontSize: 'var(--sn-text-sm)', color: 'var(--sn-primary)' }}>
-            {auth.user?.email}
-          </span>
-        </div>
       </div>
 
       {/* Owned Listings List */}
@@ -422,7 +455,7 @@ export default function HostPage({ auth }) {
         {loading && (
           <div className="loading-state" role="status">
             <Spinner size="lg" label="Loading listings…" />
-            <p>Fetching your property portfolio…</p>
+            <p>Loading…</p>
           </div>
         )}
 
@@ -430,9 +463,6 @@ export default function HostPage({ auth }) {
           <div className="empty-state">
             <p style={{ fontWeight: 600, fontSize: 'var(--sn-text-base)', marginBottom: '0.5rem' }}>
               No listings created yet.
-            </p>
-            <p style={{ color: 'var(--sn-ink-muted)', marginBottom: '1rem' }}>
-              Publish your first vacation rental below with full description, amenities, address, and photos.
             </p>
             <Button
               type="button"
@@ -559,12 +589,12 @@ export default function HostPage({ auth }) {
                           <>
                             <span>&bull;</span>
                             <a
-                              href={`https://www.openstreetmap.org/?mlat=${l.lat}&mlon=${l.lng}#map=16/${l.lat}/${l.lng}`}
+                              href={`https://www.google.com/maps/search/?api=1&query=${l.lat},${l.lng}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               style={{ textDecoration: 'underline' }}
                             >
-                              📍 OSM Map
+                              📍 Google Map
                             </a>
                           </>
                         )}
@@ -573,12 +603,12 @@ export default function HostPage({ auth }) {
                       {/* Status contextual notes */}
                       {l.status === 'PENDING_APPROVAL' && (
                         <p style={{ fontSize: 'var(--sn-text-xs)', color: 'var(--sn-warning-ink)', margin: '0 0 0.5rem' }}>
-                          ⏳ Awaiting administrator approval. This listing will remain hidden from public search until approved.
+                          Awaiting approval. Hidden from search until then.
                         </p>
                       )}
                       {l.status === 'APPROVED' && (
                         <p style={{ fontSize: 'var(--sn-text-xs)', color: 'var(--sn-success)', margin: '0 0 0.5rem' }}>
-                          ✓ Live in public search. Any material update will return this listing to PENDING_APPROVAL for re-moderation.
+                          Live in search.
                         </p>
                       )}
 
@@ -660,7 +690,7 @@ export default function HostPage({ auth }) {
               {editingId ? `Edit Listing #${editingId}` : 'Add a New Vacation Rental'}
             </h3>
             <p className="card-meta" style={{ margin: '0.25rem 0 0' }}>
-              Fill out all property details. Listings enter <strong>PENDING_APPROVAL</strong> moderation before appearing publicly.
+              New and edited listings are reviewed before they appear in search.
             </p>
           </div>
           {editingId && (
@@ -669,12 +699,6 @@ export default function HostPage({ auth }) {
             </Button>
           )}
         </div>
-
-        {editingId && (
-          <Alert variant="warning" title="Moderation notice">
-            You are editing <strong>Listing #{editingId}</strong>. Per StayNest policy, saving material updates will reset the listing status to <strong>PENDING_APPROVAL</strong> so administrators can verify details.
-          </Alert>
-        )}
 
         <form onSubmit={handleSubmit} aria-label="Host rental listing creation and edit form">
           {/* Section 1: Property Identity & Description */}
@@ -692,7 +716,6 @@ export default function HostPage({ auth }) {
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 placeholder="e.g., Waterfront Modern Loft with Bay Views"
               />
-              <span className="field-hint">A descriptive headline that attracts guests.</span>
             </div>
 
             <div className="field-group">
@@ -750,22 +773,24 @@ export default function HostPage({ auth }) {
             </div>
           </fieldset>
 
-          {/* Section 3: Location, Address Lookup & Coordinates (Requirement 4.1 & OpenStreetMap) */}
+          {/* Section 3: Location, Address Lookup & Coordinates (Requirement 4.1) */}
           <fieldset style={{ border: '1px solid var(--sn-line)', borderRadius: 'var(--sn-radius-md)', padding: '1.25rem', marginBottom: '1.5rem', background: 'var(--sn-surface)' }}>
             <legend style={{ fontWeight: 700, padding: '0 0.5rem', color: 'var(--sn-ink)' }}>
               3. Location & Address Geocoding
             </legend>
 
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '0.75rem' }}>
-              <div className="field-group">
+              <div className="field-group" style={{ position: 'relative' }}>
                 <label htmlFor="host-address">Street Address *</label>
                 <input
                   id="host-address"
+                  autoComplete="off"
                   required
                   value={form.address}
-                  onChange={(e) => setForm({ ...form, address: e.target.value })}
-                  placeholder="e.g., 100 Demo Street"
+                  onChange={(e) => { setForm({ ...form, address: e.target.value }); addressAC.query(e.target.value); }}
+                  placeholder={hasGoogleMaps ? 'Start typing — Google Maps will suggest addresses' : 'e.g., 100 Demo Street'}
                 />
+                <PlaceSuggestions ac={addressAC} label="Address suggestions" />
               </div>
 
               <div className="field-group">
@@ -812,11 +837,8 @@ export default function HostPage({ auth }) {
                 loadingText="Looking up coordinates…"
                 onClick={handleAddressLookup}
               >
-                📍 Lookup Coordinates with OpenStreetMap
+                📍 Look up coordinates from address
               </Button>
-              <span className="field-hint" style={{ margin: 0 }}>
-                Resolves latitude & longitude using the address lookup provider.
-              </span>
             </div>
 
             {lookupMsg && (
@@ -854,6 +876,13 @@ export default function HostPage({ auth }) {
                 />
               </div>
             </div>
+
+            {Number.isFinite(Number(form.lat)) && Number.isFinite(Number(form.lng)) && form.lat !== '' && form.lng !== '' && (
+              <div style={{ marginTop: '1rem' }}>
+                <span className="card-meta" style={{ display: 'block', marginBottom: '0.5rem' }}>Location preview:</span>
+                <MapView listings={[{ id: 0, title: form.title || 'Your listing', address: form.address, city: form.city, lat: form.lat, lng: form.lng }]} selectedId={0} />
+              </div>
+            )}
           </fieldset>
 
           {/* Section 4: Operating Hours & Booking Times (Requirement 4.1) */}
@@ -912,7 +941,6 @@ export default function HostPage({ auth }) {
                 onChange={(e) => setForm({ ...form, available_times: e.target.value })}
                 placeholder="e.g., Check-in 3pm, check-out 11am; available year-round unless booked"
               />
-              <span className="field-hint">Displayed to guests alongside check-in instructions.</span>
             </div>
           </fieldset>
 
@@ -1033,7 +1061,21 @@ export default function HostPage({ auth }) {
             </legend>
 
             <div className="field-group">
-              <label htmlFor="host-photos">Photo URLs (one per line or comma-separated)</label>
+              <label htmlFor="host-upload">Upload photos or videos from your device</label>
+              <input
+                id="host-upload"
+                type="file"
+                multiple
+                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
+                onChange={handleFiles}
+                disabled={uploading}
+              />
+              {uploading && <span className="card-meta">Uploading…</span>}
+              {uploadMsg && <Alert variant={uploadMsg.type === 'error' ? 'error' : 'success'}>{uploadMsg.text}</Alert>}
+            </div>
+
+            <div className="field-group">
+              <label htmlFor="host-photos">Photo URLs (uploaded files appear here; one per line or comma-separated)</label>
               <textarea
                 id="host-photos"
                 rows={3}
@@ -1041,7 +1083,6 @@ export default function HostPage({ auth }) {
                 onChange={(e) => setForm({ ...form, photos: e.target.value })}
                 placeholder="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&#10;https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800"
               />
-              <span className="field-hint">Provide high-resolution image links to showcase your property.</span>
             </div>
 
             {/* Live photo preview grid */}
@@ -1081,7 +1122,6 @@ export default function HostPage({ auth }) {
                 onChange={(e) => setForm({ ...form, videos: e.target.value })}
                 placeholder="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
               />
-              <span className="field-hint">Direct MP4 or video links for virtual property tours.</span>
             </div>
           </fieldset>
 

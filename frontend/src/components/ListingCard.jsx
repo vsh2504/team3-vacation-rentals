@@ -11,41 +11,39 @@ export default function ListingCard({ listing, index, selected, onSelect, search
   const available = l.available ?? l.is_available ?? true;
   const href = `/listings/${l.id}${search}`;
   const reviews = l.reviews || [];
+  const rating = l.average_rating != null ? Number(l.average_rating) : null;
+  const reviewCount = l.review_count ?? reviews.length;
   return (
-    <article className="card" aria-labelledby={`card-${l.id}`}
-      style={selected ? { outline: '3px solid var(--sn-color-accent, #f2b134)' } : undefined}>
-      {l.photos?.[0]
-        ? <img src={l.photos[0]} alt={`${l.title} photo`} loading="lazy" />
-        : l.videos?.[0]
-          ? <video src={l.videos[0]} controls preload="none" aria-label={`${l.title} video`} style={{ width: '100%', maxHeight: 200 }} />
-          : <div className="card-meta" style={{ padding: 16 }}>No media yet</div>}
+    <article className={`card listing-card${selected ? ' is-selected' : ''}`} aria-labelledby={`card-${l.id}`} style={{ '--i': index ?? 0 }}>
+      <div className="listing-media">
+        {l.photos?.[0]
+          ? <img src={l.photos[0]} alt={`${l.title} photo`} loading="lazy" />
+          : l.videos?.[0]
+            ? <video src={l.videos[0]} controls preload="none" aria-label={`${l.title} video`} />
+            : <div className="listing-media-empty">No photos yet</div>}
+        {requested && (
+          <span className={`listing-chip ${available ? 'is-ok' : 'is-off'}`}>{available ? 'Available for your dates' : 'Unavailable'}</span>
+        )}
+      </div>
       <div className="card-body">
-        <h3 className="card-title" id={`card-${l.id}`}>
-          {index != null && <span aria-hidden="true">{index + 1}. </span>}
-          <Link to={href}>{l.title}</Link>
-        </h3>
-        <p className="card-meta">{l.city}, {l.state} {l.zip} — up to {l.max_guests} guests — {l.bedrooms} bed, {l.bathrooms} bath</p>
-        <p className="card-meta">
-          {l.average_rating != null ? <>★ {l.average_rating} ({l.review_count ?? reviews.length} reviews)</> : 'No reviews yet'}
-          {' · '}Booked today: {l.booked_today ?? 0}
-        </p>
-        {!!l.amenities?.length && <p className="card-meta">Amenities: {l.amenities.join(', ')}</p>}
-        {reviews[0] && <p className="card-meta"><em>“{reviews[0].comment}”</em></p>}
-        <p className="card-price">{money(l.price_per_night)} <span>night</span>
-          {l.total_cost != null && <span> · {money(l.total_cost)} total for {l.nights} night{l.nights === 1 ? '' : 's'}</span>}
-        </p>
-        <p>
-          <span className={`badge ${available ? 'badge-success' : 'badge-danger'}`}>
-            {available ? (requested ? 'Available for your dates' : 'Approved') : 'Unavailable'}
+        <div className="listing-row">
+          <h3 className="card-title" id={`card-${l.id}`}><Link to={href}>{l.title}</Link></h3>
+          <span className="listing-rating" aria-label={rating != null ? `Rated ${rating} out of 5 from ${reviewCount} reviews` : 'No reviews yet'}>
+            {rating != null ? <>★ {rating} <span>({reviewCount})</span></> : <span>New</span>}
           </span>
-          {!available && l.availability?.reason && <span className="card-meta"> {l.availability.reason}</span>}
+        </div>
+        <p className="card-meta">{l.city}, {l.state} · up to {l.max_guests} guests</p>
+        <p className="card-meta">{l.bedrooms} bed · {l.bathrooms} bath{(l.booked_today ?? 0) > 0 ? ` · booked ${l.booked_today}× today` : ''}</p>
+        <p className="card-price"><strong>{money(l.price_per_night)}</strong> <span>night</span>
+          {l.total_cost != null && <span className="listing-total"> · {money(l.total_cost)} total for {l.nights} night{l.nights === 1 ? '' : 's'}</span>}
         </p>
-        <p style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {onSelect && <button type="button" className="btn btn-ghost btn-sm" onClick={() => onSelect(l.id)} aria-pressed={!!selected}>Show on map</button>}
-          {available
-            ? <Link className="btn btn-primary btn-sm" to={href}>{requested ? 'Book' : 'View & book'}</Link>
-            : <button type="button" className="btn btn-sm" disabled aria-disabled="true">Unavailable</button>}
-        </p>
+        {!available && l.availability?.reason && <p className="card-meta">{l.availability.reason}</p>}
+        {(onSelect || !available) && (
+          <p className="card-actions">
+            {onSelect && <button type="button" className="btn btn-ghost btn-sm" onClick={() => onSelect(l.id)} aria-pressed={!!selected}>Show on map</button>}
+            {!available && <button type="button" className="btn btn-sm" disabled aria-disabled="true">Unavailable</button>}
+          </p>
+        )}
       </div>
     </article>
   );

@@ -50,7 +50,7 @@ export default function AnalyticsPage({ auth }) {
   useEffect(() => { load(); }, [load]);
 
   if (!auth) return <Alert variant="info">Log in as a host or administrator to see analytics.</Alert>;
-  if (!allowed) return <Alert variant="info" title="Not available for customers">Analytics are for hosts (own listings) and administrators (platform).</Alert>;
+  if (!allowed) return <Alert variant="info" title="Not available for customers">Analytics are for hosts and administrators.</Alert>;
 
   function applyZip(e) {
     e.preventDefault();
@@ -65,7 +65,7 @@ export default function AnalyticsPage({ auth }) {
     <section aria-labelledby="an-h">
       <div className="dash-head">
         <div><h2 id="an-h" style={{ margin: 0 }}>{role === 'ADMIN' ? 'Platform analytics' : 'Host analytics'}</h2>
-          <p className="card-meta" style={{ margin: 0 }}>{role === 'ADMIN' ? 'All listings' : 'Your listings only'} · cancelled bookings excluded{zip ? ` · ZIP ${zip}` : ''}</p></div>
+          <p className="card-meta" style={{ margin: 0 }}>{role === 'ADMIN' ? 'All listings' : 'Your listings only'}{zip ? ` · ZIP ${zip}` : ''}</p></div>
         <form className="dash-controls" onSubmit={applyZip} noValidate>
           <div className="field-group">
             <span id="period-l" className="field-hint">Period</span>

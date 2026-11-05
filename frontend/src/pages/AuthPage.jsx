@@ -118,11 +118,6 @@ export default function AuthPage({ onAuth }) {
   return (
     <section className="auth-container">
       <h2>{mode === 'login' ? 'Sign in to StayNest' : 'Create your StayNest account'}</h2>
-      <p className="card-meta">
-        {mode === 'login'
-          ? 'Enter your credentials to access your vacation rental stays, listings, or management tools.'
-          : 'Join StayNest to search and book rentals, or manage and monetize your properties.'}
-      </p>
 
       {/* Segmented Mode Switcher (Requirement 8.4) */}
       <div className="auth-tabs" role="tablist" aria-label="Authentication mode selection">
@@ -230,7 +225,7 @@ export default function AuthPage({ onAuth }) {
                     <strong>Customer</strong>
                     <Badge variant="neutral">Guest</Badge>
                   </div>
-                  <p>Search & book stays up to 14 days, view & cancel bookings, leave reviews on completed stays.</p>
+                  <p>Book stays and leave reviews.</p>
                 </div>
 
                 <div
@@ -250,7 +245,7 @@ export default function AuthPage({ onAuth }) {
                     <strong>Host</strong>
                     <Badge variant="primary">Host</Badge>
                   </div>
-                  <p>Publish & manage rental listings, set amenities and hours, view booking analytics for your properties.</p>
+                  <p>List your properties and see their bookings.</p>
                 </div>
               </div>
               {fieldErrors.role && (
@@ -348,8 +343,7 @@ export default function AuthPage({ onAuth }) {
           <Badge variant="accent">Demo only</Badge>
         </div>
         <p style={{ fontSize: '0.8125rem', marginBottom: '0.75rem' }}>
-          Administrator accounts are seeded securely on server startup and cannot be registered publicly via the API.
-          Use these buttons to quickly test role navigation:
+          Quick sign-in for testing:
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
           <Button

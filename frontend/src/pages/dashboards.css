@@ -1,10 +1,15 @@
 /* Admin moderation + analytics dashboards (task 3.4). Uses design tokens only. */
 .dash-head { display:flex; flex-wrap:wrap; gap:var(--sn-space-4); align-items:flex-end; justify-content:space-between; margin-bottom:var(--sn-space-5); }
 .dash-controls { display:flex; flex-wrap:wrap; gap:var(--sn-space-3); align-items:flex-end; }
-.dash-controls .field-group { min-width:150px; }
-.seg { display:inline-flex; border:1px solid var(--sn-line-strong); border-radius:var(--sn-radius-md); overflow:hidden; }
-.seg button { border:0; border-radius:0; background:var(--sn-surface); color:var(--sn-ink); min-width:64px; }
-.seg button[aria-pressed="true"] { background:var(--sn-primary); color:#fff; }
+.dash-controls .field-group { min-width:150px; margin-bottom:0; position:relative; }
+/* Same label look for the Period group (a span) as for the ZIP <label>. */
+.dash-controls .field-group > .field-hint { margin:0 0 var(--sn-space-1); font-size:var(--sn-text-sm); font-weight:600; color:var(--sn-ink); }
+/* The error hangs below the input so it never lifts the field off the button's baseline. */
+.dash-controls .field-error { position:absolute; top:100%; left:0; margin-top:0.25rem; white-space:nowrap; }
+.dash-controls > button, .dash-controls > .btn { margin:0; }
+.seg { display:inline-flex; border:1px solid var(--sn-line-strong); border-radius:var(--sn-radius-md); overflow:hidden; min-height:var(--sn-target-min); }
+.seg button { border:0; border-radius:0; background:var(--sn-surface); color:var(--sn-ink); min-width:64px; padding-inline:var(--sn-space-4); }
+.seg button[aria-pressed="true"] { background:var(--sn-primary); color:var(--sn-on-primary); }
 .metric-grid { display:grid; gap:var(--sn-space-4); grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); margin-bottom:var(--sn-space-5); }
 .metric { background:var(--sn-surface); border:1px solid var(--sn-line); border-radius:var(--sn-radius-md); padding:var(--sn-space-4); box-shadow:var(--sn-shadow-rest); }
 .metric dt { color:var(--sn-ink-muted); font-size:var(--sn-text-sm); }

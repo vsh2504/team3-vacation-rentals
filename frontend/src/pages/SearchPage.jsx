@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import ListingCard from '../components/ListingCard.jsx';
 import MapView from '../components/MapView.jsx';
 import { api, qs } from '../api/client.js';
+import { PlaceSuggestions, usePlacesAutocomplete } from '../usePlacesAutocomplete.jsx';
 import seed from '../../../backend/data/listings_seed.json';
 
 const DAY = 86400000;
@@ -21,6 +22,15 @@ function validate(f) {
   }
   return e;
 }
+
+const Field = ({ id, label, error: er, hint, wide, children }) => (
+  <div className={`field-group${wide ? ' field-group-wide' : ''}`}>
+    <label htmlFor={id}>{label}</label>
+    {children}
+    {hint && !er && <span className="field-hint" id={`${id}-hint`}>{hint}</span>}
+    {er && <span className="field-error" id={`${id}-err`} role="alert">{er}</span>}
+  </div>
+);
 
 export default function SearchPage() {
   const [f, setF] = useState({ checkIn: '', checkOut: '', checkInTime: '', checkOutTime: '', guests: 2, city: '', state: '', zip: '', address: '' });
@@ -63,6 +73,17 @@ export default function SearchPage() {
   }
   useEffect(() => { run(); }, []); // eslint-disable-line
 
+  const addrAC = usePlacesAutocomplete((p) => {
+    setPicked({ display_name: p.formatted, city: p.city, state: p.state, zip: p.zip, lat: p.lat, lng: p.lng, provider: 'google' });
+    setGeoMsg(`Selected: ${p.formatted}`);
+    setF(prev => ({ ...prev, address: p.formatted, city: p.city || prev.city, state: p.state || prev.state, zip: p.zip || prev.zip }));
+  });
+  // City suggestions: picking one fills city + state (address/ZIP cleared so they don't over-constrain).
+  const cityAC = usePlacesAutocomplete((p) => {
+    setF(prev => ({ ...prev, city: p.city || prev.city, state: p.state || prev.state, zip: '', address: '' }));
+    setPicked(null);
+  }, { types: ['locality'] });
+
   async function lookup() {
     setGeoMsg(''); setSuggestions([]);
     if (f.address.trim().length < 3) { setGeoMsg('Type at least 3 characters of an address.'); return; }
@@ -77,67 +98,67 @@ export default function SearchPage() {
     setF(p => ({ ...p, address: s.display_name, city: s.city || p.city, state: s.state || p.state, zip: s.zip || p.zip }));
   }
 
-  const Field = ({ id, label, error: er, hint, children }) => (
-    <div className="field-group">
-      <label htmlFor={id}>{label}</label>
-      {children}
-      {hint && !er && <span className="field-hint" id={`${id}-hint`}>{hint}</span>}
-      {er && <span className="field-error" id={`${id}-err`} role="alert">{er}</span>}
-    </div>
-  );
   const aria = (id, er, hint) => ({ id, 'aria-invalid': er ? 'true' : undefined, 'aria-describedby': er ? `${id}-err` : hint ? `${id}-hint` : undefined });
 
   return (
     <section>
-      <h2>Find a stay</h2>
+      <h2 className="page-title">Find a stay</h2>
       <form onSubmit={run} className="search-bar" noValidate aria-label="Search vacation rentals">
-        <Field id="s-in" label="Check-in date" error={errors.checkIn}><input type="date" {...aria('s-in', errors.checkIn)} value={f.checkIn} onChange={set('checkIn')} /></Field>
-        <Field id="s-in-t" label="Check-in time"><input type="time" id="s-in-t" value={f.checkInTime} onChange={set('checkInTime')} /></Field>
-        <Field id="s-out" label="Check-out date" error={errors.checkOut} hint="Maximum stay is 14 nights."><input type="date" {...aria('s-out', errors.checkOut, true)} value={f.checkOut} min={f.checkIn || undefined} onChange={set('checkOut')} /></Field>
-        <Field id="s-out-t" label="Check-out time"><input type="time" id="s-out-t" value={f.checkOutTime} onChange={set('checkOutTime')} /></Field>
-        <Field id="s-g" label="Guests" error={errors.guests}><input type="number" min="1" {...aria('s-g', errors.guests)} value={f.guests} onChange={e => setF(p => ({ ...p, guests: Number(e.target.value) }))} /></Field>
-        <Field id="s-city" label="City"><input id="s-city" value={f.city} onChange={set('city')} placeholder="San Jose" autoComplete="address-level2" /></Field>
-        <Field id="s-state" label="State"><input id="s-state" value={f.state} onChange={set('state')} placeholder="CA" autoComplete="address-level1" /></Field>
-        <Field id="s-zip" label="ZIP"><input id="s-zip" value={f.zip} onChange={set('zip')} placeholder="95110" inputMode="numeric" autoComplete="postal-code" /></Field>
-        <Field id="s-addr" label="Address" hint="Optional. Look up to autofill city, state and ZIP.">
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input id="s-addr" aria-describedby="s-addr-hint s-addr-msg" value={f.address} onChange={e => { set('address')(e); setPicked(null); }} placeholder="100 Main St, San Jose" autoComplete="street-address" />
-            <button type="button" className="btn btn-ghost btn-sm" onClick={lookup}>Look up</button>
-          </div>
-          <span id="s-addr-msg" role="status" className="field-hint">{geoMsg}</span>
-          {suggestions.length > 0 && (
-            <ul role="listbox" aria-label="Address suggestions" style={{ listStyle: 'none', padding: 0, margin: '4px 0' }}>
-              {suggestions.map((s, i) => (
-                <li key={i} role="option" aria-selected={picked === s}>
-                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => choose(s)}>{s.display_name}</button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Field>
-        <button type="submit" className="btn btn-primary" disabled={status === 'loading'} aria-busy={status === 'loading'}>
-          {status === 'loading' ? 'Searching…' : 'Search'}
-        </button>
+        <div className="search-main">
+          <Field id="s-city" label="City" ><input id="s-city" value={f.city} onChange={e => { set('city')(e); cityAC.query(e.target.value); }} placeholder="Where to? e.g. San Jose" autoComplete="address-level2" /><PlaceSuggestions ac={cityAC} label="City suggestions" /></Field>
+          <Field id="s-in" label="Check-in date" error={errors.checkIn}><input type="date" {...aria('s-in', errors.checkIn)} value={f.checkIn} onChange={set('checkIn')} /></Field>
+          <Field id="s-out" label="Check-out date" error={errors.checkOut}><input type="date" {...aria('s-out', errors.checkOut, true)} value={f.checkOut} min={f.checkIn || undefined} onChange={set('checkOut')} /></Field>
+          <Field id="s-g" label="Guests" error={errors.guests}><input type="number" min="1" {...aria('s-g', errors.guests)} value={f.guests} onChange={e => setF(p => ({ ...p, guests: Number(e.target.value) }))} /></Field>
+          <button type="submit" className="search-submit" disabled={status === 'loading'} aria-busy={status === 'loading'}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><line x1="20" y1="20" x2="16.5" y2="16.5" /></svg>
+            <span>{status === 'loading' ? 'Searching…' : 'Search'}</span>
+          </button>
+        </div>
+        <div className="search-more">
+          <Field id="s-in-t" label="Check-in time"><input type="time" id="s-in-t" value={f.checkInTime} onChange={set('checkInTime')} /></Field>
+          <Field id="s-out-t" label="Check-out time"><input type="time" id="s-out-t" value={f.checkOutTime} onChange={set('checkOutTime')} /></Field>
+          <Field id="s-state" label="State"><input id="s-state" value={f.state} onChange={set('state')} placeholder="CA" autoComplete="address-level1" /></Field>
+          <Field id="s-zip" label="ZIP"><input id="s-zip" value={f.zip} onChange={set('zip')} placeholder="95110" inputMode="numeric" autoComplete="postal-code" /></Field>
+          <Field id="s-addr" wide label="Address">
+            <div style={{ position: 'relative' }}>
+            <div className="input-row">
+              <input id="s-addr" aria-describedby="s-addr-hint s-addr-msg" value={f.address} onChange={e => { set('address')(e); setPicked(null); addrAC.query(e.target.value); }} placeholder="100 Main St, San Jose" autoComplete="street-address" />
+              <button type="button" className="btn btn-ghost btn-sm" onClick={lookup}>Look up</button>
+            </div>
+            <PlaceSuggestions ac={addrAC} label="Address suggestions" />
+            </div>
+            <span id="s-addr-msg" role="status" className="field-hint">{geoMsg}</span>
+            {suggestions.length > 0 && (
+              <ul role="listbox" aria-label="Address suggestions" style={{ listStyle: 'none', padding: 0, margin: '4px 0' }}>
+                {suggestions.map((s, i) => (
+                  <li key={i} role="option" aria-selected={picked === s}>
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => choose(s)}>{s.display_name}</button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Field>
+        </div>
       </form>
       {nights > 0 && nights <= 14 && <p className="card-meta">{nights} night{nights === 1 ? '' : 's'} selected.</p>}
       {error && <p role="alert" className="alert alert-danger" ref={errRef}>{error}</p>}
-      <p role="status" aria-live="polite">
-        {status === 'loading' ? 'Searching…' : status === 'done' ? `${results.length} listing${results.length === 1 ? '' : 's'} found${source ? ` (${source})` : ''}.` : ''}
+      <p role="status" aria-live="polite" className="status-line">
+        {status === 'loading' ? 'Searching…' : status === 'done' ? `${results.length} stay${results.length === 1 ? '' : 's'}${source === 'API' ? '' : ' (sample data)'}` : ''}
       </p>
-      <div role="group" aria-label="Results view" className="view-toggle" style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+      <div role="group" aria-label="Results view" className="view-toggle">
         <button type="button" className="btn btn-sm btn-ghost" aria-pressed={view === 'list'} onClick={() => setView('list')}>List</button>
         <button type="button" className="btn btn-sm btn-ghost" aria-pressed={view === 'map'} onClick={() => setView('map')}>Map</button>
       </div>
       {status === 'done' && !results.length && !error && (
         <p className="alert">No listings match. Try different dates, fewer guests, or a wider location.</p>
       )}
-      <div className={`search-layout view-${view}`} style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))' }}>
-        <div className="results-grid" hidden={view === 'map'} style={view === 'map' ? undefined : undefined}>
+      <div className={`search-layout view-${view}`}>
+        <div className="results-grid">
           {results.map((l, i) => (
-            <ListingCard key={l.id} listing={l} index={i} selected={l.id === selectedId} onSelect={setSelectedId} search={detailSearch} />
+            <ListingCard key={l.id} listing={l} index={i} selected={l.id === selectedId} onSelect={id => { setSelectedId(id); setView('map'); }} search={detailSearch} />
           ))}
         </div>
-        <div hidden={view === 'list' && false}>
+        <div className="map-pane" hidden={view === 'list'}>
           <MapView listings={results} selectedId={selectedId} onSelect={setSelectedId} />
         </div>
       </div>

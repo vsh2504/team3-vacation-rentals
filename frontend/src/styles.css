@@ -41,7 +41,7 @@ body {
   left: 1rem;
   z-index: 10000;
   background-color: var(--sn-primary);
-  color: #ffffff;
+  color: var(--sn-on-primary);
   padding: 0.75rem 1.25rem;
   border-radius: var(--sn-radius-sm);
   font-weight: 700;
@@ -271,7 +271,7 @@ button, .btn {
   gap: 0.5rem;
   text-decoration: none;
   background-color: var(--sn-primary);
-  color: #ffffff;
+  color: var(--sn-on-primary);
   border: 1px solid var(--sn-primary);
   transition: background-color var(--sn-motion-fast) var(--sn-ease),
               border-color var(--sn-motion-fast) var(--sn-ease),
@@ -291,7 +291,7 @@ button:active, .btn:active {
 /* Button Variants */
 .btn-primary {
   background-color: var(--sn-primary);
-  color: #ffffff;
+  color: var(--sn-on-primary);
   border-color: var(--sn-primary);
 }
 .btn-primary:hover {
@@ -386,7 +386,7 @@ input:focus, select:focus, textarea:focus {
 
 input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] {
   border-color: var(--sn-danger);
-  background-color: #fffbfa;
+  background-color: var(--sn-danger-tint);
 }
 
 .field-group {
@@ -628,31 +628,120 @@ input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="
 
 /* Search Bar Container */
 .search-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sn-space-3);
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--sn-space-4);
+  align-items: start;
   background: var(--sn-surface-soft);
   border: 1px solid var(--sn-line);
   border-radius: var(--sn-radius-lg);
   padding: var(--sn-space-4);
   margin: var(--sn-space-4) 0;
 }
-.search-bar label {
+.search-bar .field-group {
+  margin-bottom: 0;
+  min-width: 0;
+}
+.search-bar .field-group label {
+  white-space: nowrap;
+}
+.search-bar .field-group-wide {
+  grid-column: span 2;
+}
+.search-bar .input-row {
   display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  flex: 1 1 140px;
+  gap: var(--sn-space-2);
 }
-.search-bar button[type="submit"] {
+.search-bar .input-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.search-bar .input-row .btn {
   flex-shrink: 0;
+  white-space: nowrap;
 }
+.search-bar .search-submit {
+  align-self: end;
+  /* label (~1.25rem + gap) is above the inputs, so align with input row */
+  min-height: var(--sn-target-min);
+  width: 100%;
+}
+
+/* Inline helper/status text must never look like an alert box */
+.field-hint[role="status"], .field-error[role="alert"], .status-line, .loading-state[role="status"], .map-box[role="status"] {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0.25rem 0 0;
+  display: block;
+  font-weight: 400;
+}
+.field-error[role="alert"] { color: var(--sn-danger); font-weight: 600; }
+.field-hint[role="status"] { color: var(--sn-ink-muted); }
+.status-line {
+  color: var(--sn-ink-muted);
+  font-size: var(--sn-text-sm);
+  margin: var(--sn-space-2) 0;
+}
+/* Empty live regions render nothing (no blank coloured boxes) */
+[role="status"]:empty, [role="alert"]:empty { display: none; }
+[hidden] { display: none !important; }
+
+.view-toggle {
+  display: flex;
+  gap: var(--sn-space-2);
+  margin: var(--sn-space-3) 0;
+}
+.view-toggle .btn[aria-pressed="true"] {
+  background: var(--sn-primary);
+  border-color: var(--sn-primary);
+  color: var(--sn-on-primary);
+}
+
+.search-layout {
+  display: grid;
+  gap: var(--sn-space-5);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+.search-layout.view-map {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+}
+.search-layout .map-pane {
+  position: sticky;
+  top: var(--sn-space-4);
+}
+.search-layout .map-pane .map-box {
+  margin: 0;
+}
+.search-layout.view-map .map-pane { order: 2; }
+.search-layout.view-map .results-grid { order: 1; }
 
 .results-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: var(--sn-space-5);
-  margin-top: var(--sn-space-5);
+  margin-top: 0;
+  align-items: stretch;
+}
+.results-grid > .card {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+.results-grid > .card .card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.results-grid > .card .card-body > p:last-child {
+  margin-top: auto;
+  margin-bottom: 0;
+}
+.card-actions {
+  display: flex;
+  gap: var(--sn-space-2);
+  flex-wrap: wrap;
 }
 
 /* Detail Page Layout */
@@ -842,13 +931,15 @@ tbody tr:hover {
   .booking-card {
     position: static;
   }
-  .search-bar {
-    flex-direction: column;
-    align-items: stretch;
+  .search-layout.view-map {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .search-bar label {
-    flex: 1 1 auto;
-    width: 100%;
+  .search-layout .map-pane {
+    position: static;
+    order: -1 !important;
+  }
+  .search-bar .field-group-wide {
+    grid-column: auto;
   }
 }
 
