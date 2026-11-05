@@ -94,6 +94,14 @@ def _booking_overlaps(check_in: date, check_out: date, check_in_time: time,
     existing_end = datetime.combine(booking.check_out, booking.check_out_time)
     return requested_start < existing_end and requested_end > existing_start
 
+def has_conflicting_booking(listing_id: int, check_in: date, check_out: date,
+                            check_in_time: time, check_out_time: time,
+                            existing: list[Booking]) -> bool:
+    """True when a CONFIRMED booking of the listing overlaps the requested stay."""
+    return any(b.status == BookingStatus.CONFIRMED and b.listing_id == listing_id
+               and _booking_overlaps(check_in, check_out, check_in_time, check_out_time, b)
+               for b in existing)
+
 def is_available(listing: Listing, check_in: date, check_out: date, guests: int,
                  existing: list[Booking], *, check_in_time: time | None = None,
                  check_out_time: time | None = None) -> bool:
@@ -105,9 +113,8 @@ def is_available(listing: Listing, check_in: date, check_out: date, guests: int,
         return False
     if not _time_in_window(requested_check_out, listing.operating_start_time, listing.operating_end_time):
         return False
-    return not any(b.status == BookingStatus.CONFIRMED and b.listing_id == listing.id
-                   and _booking_overlaps(check_in, check_out, requested_check_in,
-                                         requested_check_out, b) for b in existing)
+    return not has_conflicting_booking(listing.id, check_in, check_out,
+                                       requested_check_in, requested_check_out, existing)
 
 def price_for(listing: Listing, check_in: date, check_out: date) -> Decimal:
     # API layer may pass a float (Pydantic); convert so Decimal * Decimal always holds.
@@ -133,16 +140,86 @@ def search_listings(listings: list[Listing], bookings: list[Booking], *,
         out.append(li)
     return out
 
+# -- State pattern: booking lifecycle -------------------------------------------
+class BookingState:
+    """Behaviour of a booking in one lifecycle status (State pattern).
+
+    A transition returns ``True`` when it happened and ``False`` when the
+    current state does not allow it, so callers never branch on raw statuses.
+    """
+    status: BookingStatus
+    allows_cancel = False
+    allows_complete = False
+    allows_review = False
+
+    def cancel(self, booking: Booking, now: datetime) -> bool: return False
+    def complete(self, booking: Booking) -> bool: return False
+
+class ConfirmedState(BookingState):
+    status = BookingStatus.CONFIRMED
+    allows_cancel = True
+    allows_complete = True
+
+    def cancel(self, booking, now):
+        booking.status, booking.cancelled_at = BookingStatus.CANCELLED, now
+        return True
+
+    def complete(self, booking):
+        booking.status = BookingStatus.COMPLETED
+        return True
+
+class CancelledState(BookingState):
+    status = BookingStatus.CANCELLED
+
+class CompletedState(BookingState):
+    status = BookingStatus.COMPLETED
+    allows_review = True
+
+_BOOKING_STATES = {s.status: s for s in (ConfirmedState(), CancelledState(), CompletedState())}
+
+def booking_state_for(status: BookingStatus) -> BookingState:
+    return _BOOKING_STATES[status]
+
+# -- State pattern: listing lifecycle -------------------------------------------
+class ListingState:
+    """Moderation/edit behaviour of a listing in one status (State pattern)."""
+    status: ListingStatus
+    editable = True
+    moderatable = True
+
+    def after_edit(self) -> ListingStatus:
+        return ListingStatus.PENDING_APPROVAL      # a material edit is re-moderated (4.2)
+    def after_moderation(self, approve: bool) -> ListingStatus:
+        return ListingStatus.APPROVED if approve else ListingStatus.REJECTED
+    def after_removal(self) -> ListingStatus:
+        return ListingStatus.REMOVED
+
+class PendingListingState(ListingState): status = ListingStatus.PENDING_APPROVAL
+class ApprovedListingState(ListingState): status = ListingStatus.APPROVED
+class RejectedListingState(ListingState): status = ListingStatus.REJECTED
+
+class RemovedListingState(ListingState):
+    """REMOVED is terminal: it cannot be edited, approved or rejected again."""
+    status = ListingStatus.REMOVED
+    editable = False
+    moderatable = False
+
+_LISTING_STATES = {s.status: s for s in (PendingListingState(), ApprovedListingState(),
+                                         RejectedListingState(), RemovedListingState())}
+
+def listing_state_for(status: ListingStatus) -> ListingState:
+    return _LISTING_STATES[status]
+
 def can_review(booking: Booking, customer_id: int, existing_reviews: list[Review]) -> list[str]:
     errors = []
-    if booking.status != BookingStatus.COMPLETED: errors.append("Reviews are allowed only on COMPLETED (past) bookings")
+    if not booking_state_for(booking.status).allows_review: errors.append("Reviews are allowed only on COMPLETED (past) bookings")
     if booking.customer_id != customer_id: errors.append("Reviewer does not own this booking")
     if any(r.booking_id == booking.id for r in existing_reviews): errors.append("One review per booking")
     return errors
 
 def can_cancel(booking: Booking, customer_id: int) -> list[str]:
     errors = []
-    if booking.status != BookingStatus.CONFIRMED: errors.append("Only CONFIRMED bookings can be cancelled")
+    if not booking_state_for(booking.status).allows_cancel: errors.append("Only CONFIRMED bookings can be cancelled")
     if booking.customer_id != customer_id: errors.append("Only the booking owner can cancel")
     return errors
 

@@ -9,7 +9,8 @@ Routers validate (Pydantic), services enforce rules, repositories persist.
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from .core.errors import ApiError
-from .routers import admin, analytics, auth, bookings, listings, reviews
+from fastapi.staticfiles import StaticFiles
+from .routers import admin, analytics, auth, bookings, listings, reviews, uploads
 
 app = FastAPI(title="StayNest API", version="0.2.0-core-apis")
 
@@ -48,3 +49,6 @@ app.include_router(listings.router)
 app.include_router(bookings.router)
 app.include_router(reviews.router)
 app.include_router(analytics.router)
+app.include_router(uploads.router)
+uploads.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=uploads.UPLOAD_DIR), name="uploads")

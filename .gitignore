@@ -9,3 +9,9 @@ dist/
 .local/
 *.log
 .DS_Store
+
+frontend/.playwright-cli/
+frontend/dist/
+.conductor/
+backend/uploads/
+.coverage

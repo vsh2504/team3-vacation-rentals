@@ -13,9 +13,12 @@ from fastapi import APIRouter, Depends, Query
 from ..core.errors import ApiError, ok
 from ..domain import UserRole
 from ..services import AnalyticsService
-from .common import get_current_user, get_store
+from .common import get_store, require_role
 
 router = APIRouter(tags=["reviews/analytics — Prajval Sudhir"])
+
+_host_only = require_role(UserRole.HOST, message="Host analytics are available to hosts only")
+_admin_only = require_role(UserRole.ADMIN, message="Admin only")
 
 def _period(days: int) -> int:
     if days not in (30, 60, 90):
@@ -24,9 +27,7 @@ def _period(days: int) -> int:
 
 @router.get("/host/analytics")
 def host_analytics(days: int = Query(30), zip: str | None = None,
-                   user=Depends(get_current_user), store=Depends(get_store)):
-    if user.role != UserRole.HOST:
-        raise ApiError("FORBIDDEN", "Host analytics are available to hosts only")
+                   user=Depends(_host_only), store=Depends(get_store)):
     days = _period(days)
     data = AnalyticsService(store).host_analytics(user, days, date.today(),
                                                   zip_code=zip)
@@ -34,9 +35,7 @@ def host_analytics(days: int = Query(30), zip: str | None = None,
 
 @router.get("/admin/analytics")
 def admin_analytics(days: int = Query(30), zip: str | None = None,
-                    user=Depends(get_current_user), store=Depends(get_store)):
-    if user.role != UserRole.ADMIN:
-        raise ApiError("FORBIDDEN", "Admin only")
+                    user=Depends(_admin_only), store=Depends(get_store)):
     days = _period(days)
     data = AnalyticsService(store).platform_analytics(user, days, date.today(),
                                                       zip_code=zip)

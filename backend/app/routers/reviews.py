@@ -10,6 +10,7 @@ Host analytics scope = caller's listings only; admin scope = all hosts."""
 from datetime import date
 from fastapi import APIRouter, Depends
 from ..core.errors import ok
+from ..presenters import reviewer_name
 from ..schemas import ReviewIn
 from ..services import ReviewService
 from .common import get_current_user, get_store
@@ -28,4 +29,5 @@ def listing_reviews(listing_id: int, store=Depends(get_store)):
     rs = [r for r in store.reviews if r.listing_id == listing_id]
     avg = round(sum(r.rating for r in rs) / len(rs), 2) if rs else None
     return ok({"listing_id": listing_id, "average_rating": avg, "count": len(rs),
-               "reviews": [{"id": r.id, "rating": r.rating, "comment": r.comment, "customer_id": r.customer_id} for r in rs]})
+               "reviews": [{"id": r.id, "rating": r.rating, "comment": r.comment, "customer_id": r.customer_id,
+                            "reviewer": reviewer_name(store, r.customer_id)} for r in rs]})

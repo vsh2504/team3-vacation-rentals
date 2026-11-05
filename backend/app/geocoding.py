@@ -226,7 +226,41 @@ def _throttle_nominatim() -> None:
         _nominatim_last_call = _time.monotonic()
 
 
-class NominatimProvider:
+def build_result(query: str, display: str, street: str, city: str, state: str,
+                 zip_code: str, country: str, lat: float, lng: float,
+                 provider: str) -> GeocodeResult:
+    """Assemble a :class:`GeocodeResult`; the street falls back to the display head."""
+    return GeocodeResult(query=query, display_name=display,
+                         address=street or display.split(",")[0].strip(),
+                         city=city, state=state, zip=zip_code, country=country,
+                         lat=lat, lng=lng, provider=provider)
+
+
+class HttpGeocodingProvider:
+    """Template Method: every HTTP provider geocodes the same way.
+
+    ``geocode`` fixes the algorithm (hook -> build URL -> fetch JSON -> parse);
+    subclasses only supply the vendor-specific steps.
+    """
+
+    name = "http"
+
+    def geocode(self, address: str) -> GeocodeResult:
+        self._before_request()
+        payload = _http_json(self._request_url(address))
+        return self._parse(address, payload)
+
+    def _before_request(self) -> None:
+        """Optional hook (rate limiting); does nothing by default."""
+
+    def _request_url(self, address: str) -> str:
+        raise NotImplementedError
+
+    def _parse(self, address: str, payload: object) -> GeocodeResult:
+        raise NotImplementedError
+
+
+class NominatimProvider(HttpGeocodingProvider):
     """OpenStreetMap Nominatim provider (the local default)."""
 
     name = "nominatim"
@@ -234,15 +268,14 @@ class NominatimProvider:
     def __init__(self, base_url: str | None = None):
         self.base_url = (base_url or _env("STAYNEST_NOMINATIM_URL", DEFAULT_NOMINATIM_URL)).rstrip("/")
 
-    def geocode(self, address: str) -> GeocodeResult:
-        params = urlencode({
-            "q": address,
-            "format": "jsonv2",
-            "addressdetails": 1,
-            "limit": 1,
-        })
+    def _before_request(self) -> None:
         _throttle_nominatim()
-        payload = _http_json(f"{self.base_url}/search?{params}")
+
+    def _request_url(self, address: str) -> str:
+        params = urlencode({"q": address, "format": "jsonv2", "addressdetails": 1, "limit": 1})
+        return f"{self.base_url}/search?{params}"
+
+    def _parse(self, address: str, payload: object) -> GeocodeResult:
         if not isinstance(payload, list) or not payload:
             raise GeocodeNotFound(f"No location found for '{address}'")
         row = payload[0] or {}
@@ -259,20 +292,12 @@ class NominatimProvider:
         city = (details.get("city") or details.get("town") or details.get("village")
                 or details.get("hamlet") or details.get("municipality")
                 or details.get("suburb") or details.get("county") or "")
-        state = normalize_state_code(details.get("state") or details.get("state_code"))
-        display = row.get("display_name") or address
-        return GeocodeResult(
-            query=address,
-            display_name=display,
-            address=street or display.split(",")[0].strip(),
-            city=city,
-            state=state,
-            zip=details.get("postcode") or "",
-            country=details.get("country") or (details.get("country_code") or "").upper(),
-            lat=lat,
-            lng=lng,
-            provider=self.name,
-        )
+        return build_result(
+            address, row.get("display_name") or address, street, city,
+            normalize_state_code(details.get("state") or details.get("state_code")),
+            details.get("postcode") or "",
+            details.get("country") or (details.get("country_code") or "").upper(),
+            lat, lng, self.name)
 
 
 def _google_component(components: list[dict], *types: str) -> str:
@@ -282,7 +307,7 @@ def _google_component(components: list[dict], *types: str) -> str:
     return ""
 
 
-class GoogleGeocodingProvider:
+class GoogleGeocodingProvider(HttpGeocodingProvider):
     """Google Geocoding provider, usable only when a server-side key exists."""
 
     name = "google"
@@ -293,9 +318,10 @@ class GoogleGeocodingProvider:
         self._api_key = api_key
         self.base_url = (base_url or _env("STAYNEST_GOOGLE_GEOCODING_URL", DEFAULT_GOOGLE_URL)).rstrip("/")
 
-    def geocode(self, address: str) -> GeocodeResult:
-        params = urlencode({"address": address, "key": self._api_key})
-        payload = _http_json(f"{self.base_url}?{params}")
+    def _request_url(self, address: str) -> str:
+        return f"{self.base_url}?{urlencode({'address': address, 'key': self._api_key})}"
+
+    def _parse(self, address: str, payload: object) -> GeocodeResult:
         if not isinstance(payload, dict):
             raise GeocodingUnavailable("Address lookup returned an unusable response")
         status = payload.get("status")
@@ -315,21 +341,12 @@ class GoogleGeocodingProvider:
             _google_component(components, "street_number"),
             _google_component(components, "route"),
         ) if part)
-        city = _google_component(components, "locality", "postal_town", "sublocality")
-        state = normalize_state_code(_google_component(components, "administrative_area_level_1"))
-        display = row.get("formatted_address") or address
-        return GeocodeResult(
-            query=address,
-            display_name=display,
-            address=street or display.split(",")[0].strip(),
-            city=city,
-            state=state,
-            zip=_google_component(components, "postal_code"),
-            country=_google_component(components, "country"),
-            lat=lat,
-            lng=lng,
-            provider=self.name,
-        )
+        return build_result(
+            address, row.get("formatted_address") or address, street,
+            _google_component(components, "locality", "postal_town", "sublocality"),
+            normalize_state_code(_google_component(components, "administrative_area_level_1")),
+            _google_component(components, "postal_code"),
+            _google_component(components, "country"), lat, lng, self.name)
 
 
 # ---------------------------------------------------------------------------

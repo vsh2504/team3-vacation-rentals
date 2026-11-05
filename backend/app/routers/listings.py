@@ -14,24 +14,18 @@ Only APPROVED listings appear in search. Book button logic in the UI uses
 the same availability rule exposed here (not a second rule in React).
 """
 from datetime import date, time
-from decimal import Decimal
 
 from fastapi import APIRouter, Depends
 from pydantic import ValidationError
 
 from ..core.errors import ApiError, ok
-from ..domain import booked_today
-from ..geocoding import (GeocodeNotFound, GeocodingUnavailable, geocode_address,
-                         osm_embed_url, osm_url)
+from ..geocoding import GeocodeNotFound, GeocodingUnavailable, geocode_address
+from ..presenters import listing_out
 from ..schemas import ListingIn, SearchQuery
 from ..services import ListingService
 from .common import flush_store, get_current_user, get_store
 
 router = APIRouter(tags=["listings/search — Vinayak Gupta"])
-
-
-def _clock(value: time | None) -> str | None:
-    return value.strftime("%H:%M") if value else None
 
 
 def _duration_alias(nights: int | None, duration: int | None) -> int | None:
@@ -60,63 +54,6 @@ def _parse_search(**kwargs) -> SearchQuery:
                                             "check_in", "nights", "guests")
                           if name in lowered), None)
         raise ApiError("VALIDATION_ERROR", message, field)
-
-
-def _listing_out(listing, store, today: date, *, nights: int | None = None,
-                 distance: float | None = None, availability: dict | None = None) -> dict:
-    service = ListingService(store)
-    reviews = service.review_summary(listing.id)
-    availability = availability or service.availability(listing)
-    night_count = availability.get("nights") if availability.get("nights") is not None else nights
-    total_cost = availability.get("total_cost")
-    if total_cost is None and night_count is not None:
-        total_cost = str(Decimal(str(listing.price_per_night)) * Decimal(night_count))
-    return {
-        "id": listing.id,
-        "host_id": listing.host_id,
-        "title": listing.title,
-        "description": listing.description,
-        "address": listing.address,
-        "city": listing.city,
-        "state": listing.state,
-        "zip": listing.zip,
-        "lat": listing.lat,
-        "lng": listing.lng,
-        "price_per_night": str(listing.price_per_night),
-        "nightly_price": str(listing.price_per_night),
-        "price_tier": service.price_tier(listing),
-        "currency": "USD",
-        "max_guests": listing.max_guests,
-        "bedrooms": listing.bedrooms,
-        "bathrooms": listing.bathrooms,
-        "amenities": listing.amenities,
-        "available_times": listing.available_times,
-        "host_contact_name": listing.host_contact_name,
-        "host_contact_email": listing.host_contact_email,
-        "host_contact_phone": listing.host_contact_phone,
-        "operating_start_time": _clock(listing.operating_start_time),
-        "operating_end_time": _clock(listing.operating_end_time),
-        "check_in_time": _clock(listing.check_in_time),
-        "check_out_time": _clock(listing.check_out_time),
-        "status": listing.status.value,
-        "photos": listing.photos,
-        "videos": listing.videos,
-        "average_rating": reviews["average_rating"],
-        "review_count": reviews["review_count"],
-        "reviews": reviews["reviews"],
-        "booked_today": booked_today(listing.id, store.bookings, today),
-        "nights": night_count,
-        "duration_nights": night_count,
-        "total_cost": total_cost,
-        "available": bool(availability.get("available")),
-        "is_available": bool(availability.get("available")),
-        "availability": availability,
-        "distance_km": distance,
-        "map_url": osm_url(listing.lat, listing.lng),
-        "osm_embed_url": osm_embed_url(listing.lat, listing.lng),
-        "map_embed_url": osm_embed_url(listing.lat, listing.lng),
-        "listing_url": f"/listings/{listing.id}",
-    }
 
 
 @router.get("/listings/search")
@@ -149,9 +86,7 @@ def search(check_in: date | None = None, check_out: date | None = None,
             listing, check_in=query.check_in, check_out=query.check_out,
             nights=outcome.nights, check_in_time=query.check_in_time,
             check_out_time=query.check_out_time, guests=query.guests)
-        if query.check_in is not None and not availability["available"] and not include_unavailable:
-            continue
-        out.append(_listing_out(listing, store, today, nights=outcome.nights,
+        out.append(listing_out(listing, store, today, nights=outcome.nights,
                                 distance=outcome.distance_by_id.get(listing.id),
                                 availability=availability))
     return ok(out)
@@ -214,7 +149,7 @@ def get_listing(listing_id: int, check_in: date | None = None,
     else:
         availability = service.availability(listing)
         requested_nights = None
-    return ok(_listing_out(listing, store, date.today(), nights=requested_nights,
+    return ok(listing_out(listing, store, date.today(), nights=requested_nights,
                            availability=availability))
 
 
@@ -222,7 +157,7 @@ def get_listing(listing_id: int, check_in: date | None = None,
 def create_listing(body: ListingIn, user=Depends(get_current_user),
                    store=Depends(get_store)):
     listing = ListingService(store).create(user, body.model_dump())
-    return ok(_listing_out(listing, store, date.today()))
+    return ok(listing_out(listing, store, date.today()))
 
 
 @router.put("/listings/{listing_id}")
@@ -230,7 +165,7 @@ def update_listing(listing_id: int, body: ListingIn,
                    user=Depends(get_current_user), store=Depends(get_store)):
     listing = ListingService(store).update(user, listing_id, body.model_dump())
     flush_store(store)
-    return ok(_listing_out(listing, store, date.today()))
+    return ok(listing_out(listing, store, date.today()))
 
 
 @router.delete("/listings/{listing_id}")
@@ -243,5 +178,5 @@ def delete_listing(listing_id: int, user=Depends(get_current_user),
 
 @router.get("/host/listings")
 def my_listings(user=Depends(get_current_user), store=Depends(get_store)):
-    return ok([_listing_out(listing, store, date.today())
+    return ok([listing_out(listing, store, date.today())
                for listing in ListingService(store).by_host(user)])

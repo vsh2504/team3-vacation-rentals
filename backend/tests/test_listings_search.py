@@ -261,7 +261,7 @@ class TestListingsSearch(unittest.TestCase):
         self.assertEqual(422, self.c.get("/geocode").status_code)
 
     def test_address_search_geocodes_and_adds_distance_and_radius(self):
-        with patch("app.services.geocode_address", return_value=FAKE_GEOCODE):
+        with patch("app.services.listing_service.geocode_address", return_value=FAKE_GEOCODE):
             r = self.c.get("/listings/search?address=1%20Test%20Street%2C%20San%20Jose%2C%20CA&guests=2")
         self.assertEqual(200, r.status_code, r.text)
         results = r.json()["data"]
@@ -274,12 +274,12 @@ class TestListingsSearch(unittest.TestCase):
         far = GeocodeResult(query="far", display_name="New York", address="1",
                             city="New York", state="NY", zip="10001", country="US",
                             lat=40.7128, lng=-74.0060, provider="nominatim")
-        with patch("app.services.geocode_address", return_value=far):
+        with patch("app.services.listing_service.geocode_address", return_value=far):
             r = self.c.get("/listings/search?address=New%20York%2C%20NY&guests=2")
         self.assertEqual([], r.json()["data"])
 
     def test_address_search_falls_back_to_text_when_provider_is_down(self):
-        with patch("app.services.geocode_address", side_effect=GeocodingUnavailable("down")):
+        with patch("app.services.listing_service.geocode_address", side_effect=GeocodingUnavailable("down")):
             r = self.c.get("/listings/search?address=Demo%20Street&guests=2")
         self.assertEqual(200, r.status_code, r.text)
         self.assertTrue(r.json()["data"])
@@ -288,7 +288,7 @@ class TestListingsSearch(unittest.TestCase):
     def test_create_without_coordinates_uses_geocoder(self):
         body = self._listing_body()
         body.pop("lat"); body.pop("lng")
-        with patch("app.services.geocode_address", return_value=FAKE_GEOCODE):
+        with patch("app.services.listing_service.geocode_address", return_value=FAKE_GEOCODE):
             created, _ = self._create(body)
         self.assertAlmostEqual(FAKE_GEOCODE.lat, created["lat"])
         self.assertAlmostEqual(FAKE_GEOCODE.lng, created["lng"])
@@ -296,7 +296,7 @@ class TestListingsSearch(unittest.TestCase):
     def test_create_without_coordinates_and_geocoder_down_is_rejected(self):
         body = self._listing_body()
         body.pop("lat"); body.pop("lng")
-        with patch("app.services.geocode_address", side_effect=GeocodingUnavailable("down")):
+        with patch("app.services.listing_service.geocode_address", side_effect=GeocodingUnavailable("down")):
             r = self.c.post("/listings", json=body,
                             headers={"Authorization": f"Bearer {self._host_token()}"})
         self.assertEqual(422, r.status_code, r.text)
@@ -375,7 +375,7 @@ class TestListingsSearch(unittest.TestCase):
         created, token = self._create()
         updated = dict(self._listing_body(title="Same address, new title"))
         updated.pop("lat"); updated.pop("lng")
-        with patch("app.services.geocode_address", side_effect=GeocodingUnavailable("down")):
+        with patch("app.services.listing_service.geocode_address", side_effect=GeocodingUnavailable("down")):
             r = self.c.put(f"/listings/{created['id']}", json=updated,
                            headers={"Authorization": f"Bearer {token}"})
         self.assertEqual(200, r.status_code, r.text)
