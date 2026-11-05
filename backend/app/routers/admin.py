@@ -8,7 +8,10 @@ Endpoints:
 Only ADMIN may call these. Only APPROVED listings appear in search
 (see listings.py) — approval is the gate between Host creation and
 Customer search. The queue returns full listing, host, and completeness
-evidence so a moderator can judge accuracy before acting."""
+evidence so a moderator can judge accuracy before acting.
+
+Pattern: Controller (MVC) over the ListingService facade.
+"""
 from fastapi import APIRouter, Depends
 from ..core.errors import ApiError, ok
 from ..domain import ListingStatus, UserRole

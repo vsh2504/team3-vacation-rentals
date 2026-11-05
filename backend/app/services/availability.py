@@ -5,12 +5,15 @@ Each check inspects an :class:`AvailabilityRequest` and either returns a
 New rules (for example a minimum-stay rule) are added by writing another
 handler and inserting it in :func:`build_availability_chain`, without
 modifying existing ones (Open/Closed).
+
+Pattern: Chain of Responsibility.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, time
 
+from .chain import ChainLink
 from ..domain import (Booking, Listing, ListingStatus, _time_in_window,
                       has_conflicting_booking, price_for, validate_stay)
 
@@ -42,24 +45,18 @@ class Verdict:
     priced: bool = True     # whether a total cost can still be quoted
 
 
-class AvailabilityCheck:
+class AvailabilityCheck(ChainLink):
     """Base handler: ``check`` decides, ``handle`` walks the chain."""
-
-    def __init__(self) -> None:
-        self._next: AvailabilityCheck | None = None
-
-    def then(self, following: "AvailabilityCheck") -> "AvailabilityCheck":
-        self._next = following
-        return following
 
     def check(self, request: AvailabilityRequest) -> Verdict | None:
         raise NotImplementedError  # pragma: no cover - abstract
 
     def handle(self, request: AvailabilityRequest) -> Verdict | None:
-        verdict = self.check(request)
-        if verdict is not None or self._next is None:
-            return verdict
-        return self._next.handle(request)
+        for link in self:
+            verdict = link.check(request)
+            if verdict is not None:
+                return verdict
+        return None
 
 
 class GuestCountCheck(AvailabilityCheck):

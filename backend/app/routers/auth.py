@@ -5,7 +5,10 @@ Endpoints:
   POST /auth/login      (returns JWT with sub, role, exp + role navigation)
   GET  /auth/me         (Bearer token -> current persisted user)
 File owner in CODEOWNERS / docs: Ranadhir Reddy Rikkala.
-Admin moderation endpoints live in admin.py — same owner, same core API."""
+Admin moderation endpoints live in admin.py — same owner, same core API.
+
+Pattern: Controller (MVC) over the AuthService facade.
+"""
 from fastapi import APIRouter, Depends
 from ..core.errors import ApiError, ok
 from ..domain import UserRole

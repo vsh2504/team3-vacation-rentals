@@ -33,5 +33,24 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     server: { port: 5173, proxy },
     preview: { port: 5173, proxy },
+    test: {
+      environment: 'jsdom',
+      globals: true,
+      setupFiles: ['./src/test/setup.js'],
+      include: ['src/**/*.test.{js,jsx}'],
+      coverage: {
+        provider: 'v8',
+        // The pattern layer (api, state, services, validation, guards, shell)
+        // is held at 100%. Large page components are exercised by the
+        // browser acceptance suite (tests/run-browser-acceptance.sh).
+        include: [
+          'src/api/**', 'src/state/**', 'src/services/**', 'src/validation/**',
+          'src/theme.js', 'src/googleMaps.js', 'src/App.jsx',
+          'src/components/RoleGuard.jsx', 'src/components/ErrorBoundary.jsx',
+          'src/components/ThemeToggle.jsx', 'src/components/ui/**',
+        ],
+        thresholds: { lines: 100, statements: 100, functions: 100, branches: 100 },
+      },
+    },
   };
 });

@@ -7,7 +7,10 @@ Endpoints:
   POST /bookings/{id}/complete      (Sprint 2: own CONFIRMED booking whose check_out has passed -> COMPLETED, unlocks reviews)
 Rules (from domain.py, not re-implemented here): max stay 14 days,
 guests <= max_guests, no overlapping CONFIRMED booking -> 409,
-total_price = price_per_night * nights. Cancel frees the dates."""
+total_price = price_per_night * nights. Cancel frees the dates.
+
+Pattern: Controller (MVC) over the BookingService facade.
+"""
 from datetime import date
 from fastapi import APIRouter, Depends
 from ..core.errors import ApiError, ok

@@ -1,4 +1,7 @@
-"""Registration and login."""
+"""Registration and login.
+
+Pattern: Service Layer (uses Factory Method).
+"""
 import re
 
 from ..core.errors import ApiError

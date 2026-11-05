@@ -7,7 +7,10 @@ Response shape (frozen, docs/contracts.md): {period_days, by_zip:
 [{zip, rentals, bookings, revenue}], total_rentals, total_bookings,
 total_revenue}. Cancelled bookings are excluded; days must be exactly
 30, 60, or 90. A ZIP filter is applied before aggregation so the summary
-totals always equal the visible rows."""
+totals always equal the visible rows.
+
+Pattern: Controller (MVC) over the AnalyticsService facade.
+"""
 from datetime import date
 from fastapi import APIRouter, Depends, Query
 from ..core.errors import ApiError, ok

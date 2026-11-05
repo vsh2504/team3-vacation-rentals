@@ -2,32 +2,41 @@
 
 The frontend may render its own links, but keeping the contract here makes
 the session response self-describing and the role contract testable.
+
+Pattern: Strategy (one NavigationStrategy per role).
 """
 from ..domain import User, UserRole
 
-_ROLE_NAVIGATION: dict[UserRole, tuple[dict, ...]] = {
-    UserRole.CUSTOMER: (
-        {"key": "search", "label": "Search stays", "path": "/"},
-        {"key": "bookings", "label": "My bookings", "path": "/bookings"},
-    ),
-    UserRole.HOST: (
-        {"key": "search", "label": "Search stays", "path": "/"},
+class NavigationStrategy:
+    """Pattern: Strategy - each role supplies its own navigation policy."""
+
+    def __init__(self, *items: dict) -> None:
+        self._items = items
+
+    def links(self) -> list[dict]:
+        return [dict(item) for item in self._items]
+
+
+_SEARCH = {"key": "search", "label": "Search stays", "path": "/"}
+NAVIGATION_STRATEGIES: dict[UserRole, NavigationStrategy] = {
+    UserRole.CUSTOMER: NavigationStrategy(
+        _SEARCH, {"key": "bookings", "label": "My bookings", "path": "/bookings"}),
+    UserRole.HOST: NavigationStrategy(
+        _SEARCH,
         {"key": "listings", "label": "My listings", "path": "/host"},
         {"key": "bookings", "label": "My bookings", "path": "/bookings"},
-        {"key": "analytics", "label": "Analytics", "path": "/analytics"},
-    ),
-    UserRole.ADMIN: (
-        {"key": "search", "label": "Search stays", "path": "/"},
+        {"key": "analytics", "label": "Analytics", "path": "/analytics"}),
+    UserRole.ADMIN: NavigationStrategy(
+        _SEARCH,
         {"key": "moderation", "label": "Approvals queue", "path": "/admin"},
-        {"key": "analytics", "label": "Platform analytics", "path": "/analytics"},
-    ),
+        {"key": "analytics", "label": "Platform analytics", "path": "/analytics"}),
 }
 
 
 def navigation_for(role: UserRole | str) -> list[dict]:
     """Return a fresh copy of the navigation items for ``role``."""
     role = role if isinstance(role, UserRole) else UserRole(role)
-    return [dict(item) for item in _ROLE_NAVIGATION[role]]
+    return NAVIGATION_STRATEGIES[role].links()
 
 
 def user_public(user: User) -> dict:

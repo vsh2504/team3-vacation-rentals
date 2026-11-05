@@ -30,3 +30,36 @@ Run everything (fails below 100 % line+branch coverage, see `.coveragerc`):
 Services take their collaborators (`geocode=`, `price_tier=`, `validator=`) so
 unit tests need no network or patching. Postgres-only tests
 (`test_postgres_acceptance.py`) still require `STAYNEST_TEST_DB_URL`.
+
+## Pattern-coverage checkpoints (CP7-CP13)
+
+| CP | Pattern | Where | Test file |
+|---|---|---|---|
+| 7 | Observer | `events.py` (EventBus, NotificationLog); booking/review/listing services publish | `test_cp7_observer.py` |
+| 8 | Decorator | `price_quotes.py` (FlatFee, PercentAdjustment); `RetryingProvider` in `geocoding.py` | `test_cp8_decorator.py` |
+| 9 | Composite, Iterator | `services/completeness.py` check tree; `services/chain.py` `ChainLink.__iter__` | `test_cp9_composite_iterator.py` |
+| 10 | Memento, Mediator | `listing_history.py` (undo edit); `services/booking_mediator.py` | `test_cp10_memento_mediator.py` |
+| 11 | Abstract Factory, Builder | `store.py` backends; `seed.py` `ListingBuilder`, `demo_seed.py` `StayBuilder` | `test_cp11_factory_builder.py` |
+| 12 | Strategy, Factory Method, Composite, Facade | `core/security.py`, `navigation.py`, `uploads.py`, `stay_window.py`, `ApiError`, `main.create_app`, `routers/__init__` | `test_cp12_strategy_factory_method.py` |
+| 13 | Coverage gate | every file in `app/` must be mapped and tagged `Pattern:` | `test_cp13_pattern_map.py` |
+
+All default behaviour is unchanged: price decorators, retries and event
+subscribers are opt-in or side-effect free, and the HTTP contract is identical.
+
+## Frontend patterns (F0-F5)
+
+Run: `cd frontend && npm test` / `npm run test:coverage` (100% gate on the pattern layer).
+
+| Step | Pattern | Where | Tests |
+|---|---|---|---|
+| F0 | tooling | vitest + jsdom + Testing Library, `src/test/setup.js` | - |
+| F1 | Factory, Singleton, Facade, Decorator, Adapter | `src/api/client.js` (`createApi`, `api`, `jsonBody`/`bearer`, `normalizeError`) | `api/client.test.js` |
+| F2 | Observer, Memento, Singleton | `src/state/createStore.js`, `authStore.js` (`useAuth`) | `state/state.test.jsx` |
+| F3 | Strategy | `src/services/navigation.js` (nav links, home path, badge per role) used by `App.jsx` | `services/navigation.test.js`, `App.test.jsx` |
+| F4 | Chain of Responsibility | `src/validation/*` used by SearchPage, AuthPage, BookingForm | `validation/validation.test.js` |
+| F5 | Protection Proxy | `src/components/RoleGuard.jsx` used by AdminPage, AnalyticsPage | `components/RoleGuard.test.jsx` |
+
+Not under the unit-coverage gate: the large page components (HostPage,
+BookingsPage, ListingDetailPage, HostBookingsPage, MapView, ListingCard,
+BookingForm, ReviewForm, AuthPage, SearchPage). They are covered by the
+browser acceptance suite (`npm run test:browser`).

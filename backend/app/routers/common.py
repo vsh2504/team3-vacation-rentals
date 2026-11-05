@@ -1,21 +1,24 @@
 """Shared router helpers — NOT a core API. Owned by no single agent;
 every core API router imports get_store / get_current_user from here
-so the store and auth logic are identical across routers."""
+so the store and auth logic are identical across routers.
+
+Pattern: Singleton (STORE/BACKEND) and Protection Proxy (require_role).
+"""
 from fastapi import Depends, Header
 from ..core.errors import ApiError
 from ..core.security import decode_token
 from ..repositories import InMemoryStore
-from ..store import create_store
+from ..store import select_backend
 
 # The one shared store (Singleton). SQL-backed when STAYNEST_DB_URL is set
 # (same interface, write-through - see app/db.py), otherwise in-memory.
-STORE = create_store()
+BACKEND = select_backend()
+STORE = BACKEND.create_store()
 
 def flush_store(store):
     """Persist in-place mutations (approve/cancel/etc.) to SQL, if any. No-op for in-memory."""
     try:
-        from ..db import flush_store as _flush
-        _flush(store)
+        BACKEND.flush(store)
     except Exception:
         pass
 

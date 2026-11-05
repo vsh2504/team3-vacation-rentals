@@ -3,6 +3,8 @@
 ``ListingService`` depends on the :class:`PriceTierStrategy` protocol, so a
 different tiering policy (for example a per-market one) can be injected
 without touching the service (Open/Closed, Dependency Inversion).
+
+Pattern: Strategy.
 """
 from decimal import Decimal, InvalidOperation
 from typing import Protocol, runtime_checkable

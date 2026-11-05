@@ -2,6 +2,8 @@
 
 Routers stay thin (validate -> call service -> present); every response shape
 is built here once, so the Search, Booking and Admin screens cannot drift.
+
+Pattern: Presenter (domain -> JSON shape).
 """
 from datetime import date, time
 from decimal import Decimal

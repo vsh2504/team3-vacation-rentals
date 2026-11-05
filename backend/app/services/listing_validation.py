@@ -4,6 +4,8 @@ Every rule is a small handler that normalizes/validates one concern of the
 payload and records problems in a shared :class:`ValidationErrors`. Rules are
 linked in order by :func:`build_chain`, so a new rule is added by writing a
 class and listing it - existing rules never change (Open/Closed).
+
+Pattern: Chain of Responsibility.
 """
 from __future__ import annotations
 
@@ -15,6 +17,7 @@ from datetime import time
 from ..core.errors import ApiError
 from ..domain import Listing, _time_in_window
 from ..geocoding import normalize_state_code
+from .chain import ChainLink
 
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _ZIP_RE = re.compile(r"^\d{5}(?:-\d{4})?$")
@@ -40,23 +43,15 @@ class ValidationErrors:
             raise ApiError("VALIDATION_ERROR", "; ".join(m for _, m in self._items), field)
 
 
-class ListingRule:
-    """Chain handler: ``apply`` does the work, ``handle`` forwards to the next."""
-
-    def __init__(self) -> None:
-        self._next: ListingRule | None = None
-
-    def then(self, following: "ListingRule") -> "ListingRule":
-        self._next = following
-        return following
+class ListingRule(ChainLink):
+    """Chain handler: ``apply`` does the work, ``handle`` walks the chain."""
 
     def apply(self, payload: dict, errors: ValidationErrors) -> None:
         raise NotImplementedError  # pragma: no cover - abstract
 
     def handle(self, payload: dict, errors: ValidationErrors) -> None:
-        self.apply(payload, errors)
-        if self._next is not None:
-            self._next.handle(payload, errors)
+        for rule in self:
+            rule.apply(payload, errors)
 
 
 def build_chain(rules) -> ListingRule:

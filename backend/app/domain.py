@@ -10,6 +10,8 @@ Rules enforced here (and only here, not duplicated in React):
 - reviews only on COMPLETED bookings owned by the reviewer, one per booking
 - '# booked today' = bookings for that listing with booked_date == today
   (America/Los_Angeles), regardless of stay dates
+
+Pattern: State (booking and listing lifecycles).
 """
 from dataclasses import dataclass, field
 from datetime import date, datetime, time, timedelta

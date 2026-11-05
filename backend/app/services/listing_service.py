@@ -3,12 +3,16 @@
 Business rules live here once; routers only validate transport shapes.
 Search composes the domain's frozen rules (approval, capacity, operating
 times, booking overlap) with the geocoding provider boundary.
+
+Pattern: Service Layer with injected Strategies (price tier, validator, geocoder) and Memento history.
 """
 from datetime import date, time
 
 from ..core.errors import ApiError
 from ..domain import Listing, User, UserRole, listing_state_for
+from ..events import EVENTS, ListingModerated
 from ..factories import ListingFactory
+from ..listing_history import LISTING_HISTORY
 from ..geocoding import GeocodingError, geocode_address
 from .availability import evaluate_availability
 from .listing_search import ListingSearch, SearchOutcome
@@ -19,8 +23,10 @@ from .stay_window import resolve_stay_window
 
 class ListingService:
     def __init__(self, store, *, price_tier: PriceTierStrategy = DEFAULT_PRICE_TIER,
-                 validator: ListingValidator | None = None, geocode=None):
+                 validator: ListingValidator | None = None, geocode=None, events=None, history=None):
         self.store = store
+        self.history = history or LISTING_HISTORY
+        self.events = events or EVENTS
         self._geocode_override = geocode
         self._price_tier = price_tier
         self._validator = validator or ListingValidator()
@@ -33,7 +39,7 @@ class ListingService:
     def _find(self, listing_id: int) -> Listing:
         listing = next((l for l in self.store.listings if l.id == listing_id), None)
         if not listing:
-            raise ApiError("NOT_FOUND", "Listing not found")
+            raise ApiError.not_found("Listing not found")
         return listing
 
     def _require_host(self, user: User) -> None:
@@ -96,10 +102,18 @@ class ListingService:
             payload["lat"], payload["lng"] = listing.lat, listing.lng
         else:
             self._ensure_coordinates(payload)
+        self.history.save(listing)
         for key, value in payload.items():
             setattr(listing, key, value)
         # A material edit must be re-moderated (requirement 4.2).
         listing.status = state.after_edit()
+        return listing
+
+    def undo_last_edit(self, host: User, listing_id: int) -> Listing:
+        listing = self._find(listing_id)
+        self._require_owner(host, listing, "undo edits to")
+        if not self.history.undo(listing):
+            raise ApiError("CONFLICT", "There is no earlier version to restore")
         return listing
 
     def remove(self, host: User, listing_id: int) -> Listing:
@@ -125,6 +139,7 @@ class ListingService:
             # listing that was taken down for inaccuracy.
             raise ApiError("CONFLICT", "Removed listings cannot be approved or rejected")
         listing.status = state.after_moderation(approve)
+        self.events.publish(ListingModerated(listing.id, listing.host_id, listing.status.value))
         return listing
 
     def remove_by_admin(self, admin: User, listing_id: int) -> Listing:

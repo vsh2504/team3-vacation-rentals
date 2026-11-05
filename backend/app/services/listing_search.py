@@ -5,6 +5,8 @@ be exercised without the network or the rest of ``ListingService``
 (Dependency Inversion). Search and booking deliberately converge on the same
 availability evaluator rather than keeping parallel date/time/capacity/
 approval/overlap rules.
+
+Pattern: Strategy (injected geocode and availability callables).
 """
 import os
 from dataclasses import dataclass, field

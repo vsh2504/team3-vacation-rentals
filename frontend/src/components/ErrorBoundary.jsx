@@ -1,3 +1,5 @@
+// Pattern: State. The boundary is either healthy (renders children) or failed
+// (renders a fallback) and "Try again" transitions it back.
 import React from 'react';
 import Alert from './ui/Alert.jsx';
 import Button from './ui/Button.jsx';

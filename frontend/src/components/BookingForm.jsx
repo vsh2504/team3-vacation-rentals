@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { Alert, Badge, Button } from './ui/index.js';
+import { bookingProblem, stayNights } from '../validation/booking.js';
 
 export default function BookingForm({ auth, listingId }) {
   const [sp] = useSearchParams();
@@ -26,9 +27,7 @@ export default function BookingForm({ auth, listingId }) {
   const [error, setError] = useState('');
 
   // Calculate stay duration in nights
-  const nights = checkIn && checkOut
-    ? Math.round((new Date(`${checkOut}T00:00:00`) - new Date(`${checkIn}T00:00:00`)) / (1000 * 60 * 60 * 24))
-    : 0;
+  const nights = stayNights(checkIn, checkOut);
 
   const isStayTooLong = nights > 14;
   const isInvalidDateRange = checkIn && checkOut && nights <= 0;
@@ -37,23 +36,9 @@ export default function BookingForm({ auth, listingId }) {
     e.preventDefault();
     setError('');
 
-    if (!auth) {
-      setError('Please log in as a Customer to book this stay.');
-      return;
-    }
-
-    if (auth.user?.role !== 'CUSTOMER') {
-      setError(`Signed in as ${auth.user?.role || 'user'}. Only customer accounts can book stays. Please switch to a customer account.`);
-      return;
-    }
-
-    if (isInvalidDateRange) {
-      setError('Check-out date must be strictly after check-in date.');
-      return;
-    }
-
-    if (isStayTooLong) {
-      setError('Stays cannot exceed 14 nights (StayNest policy). Please select a shorter duration.');
+    const problem = bookingProblem({ auth, checkIn, checkOut });
+    if (problem) {
+      setError(problem);
       return;
     }
 

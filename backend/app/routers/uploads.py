@@ -2,7 +2,9 @@
 body and Content-Type image/jpeg|png|webp|gif or video/mp4|webm. The type is
 verified against the file's magic bytes, not just the header. Files are stored
 under STAYNEST_UPLOAD_DIR and served at /uploads/<name>; the returned `url` is
-a site-relative path accepted by ListingIn.photos / ListingIn.videos."""
+a site-relative path accepted by ListingIn.photos / ListingIn.videos.
+
+Pattern: Strategy (per-content-type signature checks) behind a thin Controller."""
 import os
 import uuid
 from pathlib import Path
@@ -26,20 +28,24 @@ _TYPES = {  # content-type -> (extension, kind)
 }
 
 
+def _starts_with(prefix: bytes):
+    return lambda data: data.startswith(prefix)
+
+
+# Strategy: one signature check per content type (magic bytes).
+_SIGNATURES = {
+    "image/jpeg": _starts_with(b"\xff\xd8\xff"),
+    "image/png": _starts_with(b"\x89PNG\r\n\x1a\n"),
+    "image/gif": lambda data: data[:6] in (b"GIF87a", b"GIF89a"),
+    "image/webp": lambda data: data[:4] == b"RIFF" and data[8:12] == b"WEBP",
+    "video/mp4": lambda data: data[4:8] == b"ftyp",
+    "video/webm": _starts_with(b"\x1a\x45\xdf\xa3"),
+}
+
+
 def _matches_signature(content_type: str, data: bytes) -> bool:
-    if content_type == "image/jpeg":
-        return data.startswith(b"\xff\xd8\xff")
-    if content_type == "image/png":
-        return data.startswith(b"\x89PNG\r\n\x1a\n")
-    if content_type == "image/gif":
-        return data[:6] in (b"GIF87a", b"GIF89a")
-    if content_type == "image/webp":
-        return data[:4] == b"RIFF" and data[8:12] == b"WEBP"
-    if content_type == "video/mp4":
-        return data[4:8] == b"ftyp"
-    if content_type == "video/webm":
-        return data.startswith(b"\x1a\x45\xdf\xa3")
-    return False
+    check = _SIGNATURES.get(content_type)
+    return bool(check and check(data))
 
 
 @router.post("/uploads")

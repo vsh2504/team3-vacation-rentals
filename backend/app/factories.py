@@ -4,13 +4,16 @@ One place decides how a new entity is built: id allocation, the initial
 lifecycle status and the snapshot of data that must not change later (a
 booking keeps the listing's location and price as they were at booking time).
 Services ask a factory instead of assembling entities and ids themselves.
+
+Pattern: Factory Method.
 """
 from datetime import date, time
 from typing import Iterable
 
 from .core.security import hash_password
 from .domain import (Booking, BookingStatus, Listing, ListingStatus, Review, User,
-                     UserRole, price_for)
+                     UserRole)
+from .price_quotes import DEFAULT_QUOTE, PriceQuote
 
 
 def next_id(existing: Iterable) -> int:
@@ -39,13 +42,14 @@ class BookingFactory:
     def create(existing: Iterable[Booking], listing: Listing, customer_id: int,
                check_in: date, check_out: date, guests: int, today: date, *,
                check_in_time: time | None = None,
-               check_out_time: time | None = None) -> Booking:
+               check_out_time: time | None = None,
+               quote: PriceQuote = DEFAULT_QUOTE) -> Booking:
         return Booking(
             id=next_id(existing), listing_id=listing.id, customer_id=customer_id,
             check_in=check_in, check_out=check_out, guests=guests,
             check_in_time=check_in_time or listing.check_in_time,
             check_out_time=check_out_time or listing.check_out_time,
-            total_price=price_for(listing, check_in, check_out), booked_date=today,
+            total_price=quote.quote(listing, check_in, check_out), booked_date=today,
             status=BookingStatus.CONFIRMED,
             location_name=listing.title, location_address=listing.address,
             location_city=listing.city, location_state=listing.state,

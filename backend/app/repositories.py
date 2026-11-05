@@ -1,6 +1,9 @@
 """Repository pattern (Week 1). Services depend on these Protocols, never
 on SQL directly. Tests use the InMemory implementations; production swaps
-in SQLAlchemy implementations with the same method names."""
+in SQLAlchemy implementations with the same method names.
+
+Pattern: Repository.
+"""
 from typing import Protocol
 from .domain import Booking, Listing, Review, User
 
