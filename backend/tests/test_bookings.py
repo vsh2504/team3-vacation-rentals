@@ -12,6 +12,39 @@ def fresh():
     STORE.users.clear(); STORE.listings.clear(); STORE.bookings.clear(); STORE.reviews.clear()
     seed_demo_data()
 
+class TestHostBookings(unittest.TestCase):
+    def setUp(self):
+        fresh()
+        self.c = TestClient(app, raise_server_exceptions=False)
+        self.h = {}
+        for role in ("HOST", "CUSTOMER"):
+            e = f"{role.lower()}@hb.test"
+            self.c.post("/auth/register", json={"email": e, "password": "password123", "full_name": role.title(), "role": role})
+            t = self.c.post("/auth/login", json={"email": e, "password": "password123"}).json()["data"]["access_token"]
+            self.h[role] = {"Authorization": f"Bearer {t}"}
+
+    def test_host_sees_customer_and_only_own_listings(self):
+        mine = self.c.post("/listings", headers=self.h["HOST"], json={
+            "title": "Mine", "description": "d", "address": "1 Main St", "city": "San Jose", "state": "CA",
+            "zip": "95110", "lat": 37.3, "lng": -121.9, "price_per_night": 100, "max_guests": 2,
+            "bedrooms": 1, "bathrooms": 1}).json()["data"]["id"]
+        from app.routers.common import STORE
+        from app.domain import ListingStatus
+        next(l for l in STORE.listings if l.id == mine).status = ListingStatus.APPROVED
+        bk = lambda lid: self.c.post("/bookings", headers=self.h["CUSTOMER"], json={
+            "listing_id": lid, "check_in": "2027-05-01", "check_out": "2027-05-03", "guests": 2})
+        self.assertEqual(200, bk(mine).status_code)
+        self.assertEqual(200, bk(1).status_code)  # seed listing owned by someone else
+        r = self.c.get("/host/bookings", headers=self.h["HOST"])
+        self.assertEqual(200, r.status_code, r.text)
+        rows = r.json()["data"]
+        self.assertEqual([mine], [x["listing_id"] for x in rows])
+        self.assertEqual("customer@hb.test", rows[0]["customer"]["email"])
+        self.assertIsNone(rows[0]["review"])
+
+    def test_customer_forbidden(self):
+        self.assertEqual(403, self.c.get("/host/bookings", headers=self.h["CUSTOMER"]).status_code)
+
 class TestBookings(unittest.TestCase):
     def setUp(self):
         fresh()

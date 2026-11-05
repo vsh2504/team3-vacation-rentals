@@ -1,0 +1,251 @@
+/* Browse & detail experience: photo-led cards, a single-pill search bar and a
+   split detail page with a sticky reserve card. Loaded after styles.css so
+   these rules refine it. Uses design tokens only. */
+
+.site-header { backdrop-filter: none; border-bottom-color: var(--sn-surface-sunk); }
+.page-title { margin-bottom: var(--sn-space-3); }
+
+/* ---- Search: one pill, extra filters underneath ---- */
+.search-bar {
+  display: block;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: var(--sn-space-3) 0 var(--sn-space-5);
+}
+.search-main {
+  display: grid;
+  grid-template-columns: 1.5fr 1.1fr 1.1fr 0.8fr auto;
+  align-items: stretch;
+  background: var(--sn-surface);
+  border: 1px solid var(--sn-line);
+  border-radius: var(--sn-radius-pill);
+  box-shadow: var(--sn-shadow-raised);
+  padding: var(--sn-space-1);
+}
+.search-main .field-group {
+  margin: 0;
+  min-width: 0;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--sn-radius-pill);
+  position: relative;
+  justify-content: center;
+  transition: background-color var(--sn-motion-fast) var(--sn-ease);
+}
+.search-main .field-group:hover,
+.search-main .field-group:focus-within { background: var(--sn-surface-soft); }
+.search-main .field-group + .field-group::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 22%; bottom: 22%;
+  border-left: 1px solid var(--sn-line);
+}
+.search-main .field-group:hover::before,
+.search-main .field-group:focus-within::before,
+.search-main .field-group:hover + .field-group::before,
+.search-main .field-group:focus-within + .field-group::before { border-color: transparent; }
+.search-main label { font-size: var(--sn-text-xs); margin: 0; color: var(--sn-ink); }
+.search-main input {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  min-height: 1.75rem;
+  font-size: var(--sn-text-sm);
+  color: var(--sn-ink-muted);
+  width: 100%;
+}
+.search-main input:focus { outline: none; box-shadow: none; color: var(--sn-ink); }
+.search-main .field-group:focus-within { outline: 3px solid var(--sn-focus); outline-offset: -3px; }
+.search-main .field-error { position: absolute; top: 100%; left: 1.25rem; margin-top: 0.35rem; white-space: nowrap; }
+
+.search-bar .search-submit {
+  align-self: center;
+  width: auto;
+  min-height: 3rem;
+  margin: 0 var(--sn-space-1);
+  padding: 0 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 0;
+  border-radius: var(--sn-radius-pill);
+  background: var(--sn-primary);
+  color: var(--sn-on-primary);
+  font-weight: 700;
+}
+.search-bar .search-submit:hover:not(:disabled) { background: var(--sn-primary-hover); }
+
+.search-more {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--sn-space-3) var(--sn-space-4);
+  margin-top: var(--sn-space-4);
+  padding: 0 var(--sn-space-2);
+}
+.search-more .field-group { margin: 0; min-width: 0; }
+.search-more .field-group-wide { grid-column: span 2; }
+.search-more label { font-size: var(--sn-text-xs); color: var(--sn-ink-muted); font-weight: 600; }
+
+@media (max-width: 900px) {
+  .search-main { grid-template-columns: 1fr 1fr; border-radius: var(--sn-radius-lg); }
+  .search-main .field-group { border-radius: var(--sn-radius-md); }
+  .search-main .field-group + .field-group::before { display: none; }
+  .search-bar .search-submit { grid-column: 1 / -1; justify-content: center; margin: var(--sn-space-2); min-height: var(--sn-target-min); }
+  .search-more .field-group-wide { grid-column: auto; }
+}
+
+/* ---- Results: photo first, no frame ---- */
+.results-grid { grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: var(--sn-space-6) var(--sn-space-5); }
+.search-layout.view-map .results-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+
+article.listing-card.card {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+}
+article.listing-card.card:hover { box-shadow: none; }
+.listing-media {
+  position: relative;
+  border-radius: var(--sn-radius-lg);
+  overflow: hidden;
+  background: var(--sn-surface-sunk);
+  aspect-ratio: 4 / 3;
+}
+.listing-media img, .listing-media video {
+  width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; border-radius: 0; display: block;
+  transition: transform var(--sn-motion-base) var(--sn-ease);
+}
+article.listing-card:hover .listing-media img { transform: scale(1.03); }
+.listing-media-empty { height: 100%; display: grid; place-items: center; color: var(--sn-ink-muted); font-size: var(--sn-text-sm); }
+.listing-chip {
+  position: absolute; left: var(--sn-space-3); top: var(--sn-space-3);
+  padding: 0.25rem 0.7rem; border-radius: var(--sn-radius-pill);
+  background: var(--sn-surface); color: var(--sn-ink);
+  font-size: var(--sn-text-xs); font-weight: 700; box-shadow: var(--sn-shadow-rest);
+}
+.listing-chip.is-off { color: var(--sn-danger); }
+article.listing-card .card-body { padding: var(--sn-space-3) 0 0; }
+.listing-row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sn-space-3); }
+.listing-card .card-title { font-family: var(--sn-font-body); font-size: var(--sn-text-base); font-weight: 700; margin: 0; }
+.listing-card .card-title a { color: var(--sn-ink); }
+/* The whole card opens the listing; the title link carries the accessible name. */
+.listing-card .card-title a::after { content: ''; position: absolute; inset: 0; z-index: 1; border-radius: var(--sn-radius-lg); }
+.listing-card .card-actions { position: relative; z-index: 2; margin: var(--sn-space-2) 0 0; }
+.listing-rating { white-space: nowrap; font-size: var(--sn-text-sm); font-weight: 600; color: var(--sn-ink); }
+.listing-rating span { color: var(--sn-ink-muted); font-weight: 400; }
+.listing-card .card-meta { margin: 0.1rem 0; }
+.listing-card .card-price { font-family: var(--sn-font-body); font-size: var(--sn-text-base); margin: 0.4rem 0 0; font-weight: 400; }
+.listing-card .card-price strong { font-weight: 700; }
+.listing-total { text-decoration: underline; text-underline-offset: 3px; }
+article.listing-card.is-selected .listing-media { outline: 3px solid var(--sn-accent); outline-offset: 2px; }
+
+/* ---- Detail page ---- */
+.detail-title { font-size: var(--sn-text-xl); margin-bottom: var(--sn-space-1); }
+.detail-sub { color: var(--sn-ink-muted); font-size: var(--sn-text-sm); margin-bottom: var(--sn-space-4); max-width: none; }
+.detail-sub a { color: inherit; text-decoration: underline; }
+.detail-photos {
+  display: grid;
+  gap: var(--sn-space-2);
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  height: clamp(240px, 42vw, 460px);
+  border-radius: var(--sn-radius-lg);
+  overflow: hidden;
+  margin: 0 0 var(--sn-space-6);
+}
+.detail-photos img { width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; border-radius: 0; }
+.detail-photos img:first-child { grid-row: 1 / span 2; aspect-ratio: auto; }
+.detail-photos.count-1 { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+.detail-photos.count-1 img:first-child { grid-row: auto; }
+.detail-photos.count-2 { grid-template-rows: 1fr; }
+.detail-photos.count-2 img:first-child { grid-row: auto; }
+.detail-videos { display: grid; gap: var(--sn-space-2); grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); margin-bottom: var(--sn-space-5); }
+.detail-videos video { width: 100%; height: 220px; border-radius: var(--sn-radius-lg); background: #000; }
+.detail hr { border: 0; border-top: 1px solid var(--sn-line); margin: var(--sn-space-5) 0; }
+.detail-main h3 { font-family: var(--sn-font-body); font-weight: 700; }
+.detail-layout { grid-template-columns: minmax(0, 1.7fr) minmax(300px, 1fr); gap: var(--sn-space-7); }
+.detail-aside { position: sticky; top: 90px; }
+.detail-aside .booking-card { position: static; }
+.detail-price { font-size: var(--sn-text-lg); margin-bottom: var(--sn-space-3); }
+.detail-price span { font-size: var(--sn-text-sm); color: var(--sn-ink-muted); }
+.amenity-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--sn-space-2) var(--sn-space-4); }
+.amenity-list li { padding: 0.35rem 0; }
+.review-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--sn-space-5) var(--sn-space-7); }
+.review-head { display: flex; align-items: center; gap: var(--sn-space-3); margin-bottom: var(--sn-space-2); line-height: 1.3; }
+.review-grid p { margin: 0; }
+.avatar {
+  width: 2.5rem; height: 2.5rem; border-radius: 50%;
+  display: grid; place-items: center; flex: none;
+  background: var(--sn-primary-tint); color: var(--sn-primary); font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .detail-layout { grid-template-columns: 1fr; gap: var(--sn-space-5); }
+  .detail-aside { position: static; }
+  .detail-photos { grid-template-columns: 1fr; grid-template-rows: 1fr; height: clamp(220px, 60vw, 380px); }
+  .detail-photos img:not(:first-child) { display: none; }
+  .detail-photos img:first-child { grid-row: auto; }
+}
+
+.host-preview { border: 1px solid var(--sn-line); border-radius: var(--sn-radius-lg); padding: var(--sn-space-5); }
+.host-preview p { margin-bottom: var(--sn-space-2); }
+.host-preview .btn { margin-top: var(--sn-space-2); }
+
+/* ---- Theme switch ---- */
+.header-container .brand-wrapper { order: 0; }
+.header-container .site-nav { order: 1; }
+.header-container .theme-toggle { order: 2; }
+.header-container .nav-toggle { order: 3; }
+
+button.theme-toggle {
+  position: relative;
+  width: var(--sn-target-min);
+  padding: 0;
+  border-radius: var(--sn-radius-pill);
+  background: transparent;
+  color: var(--sn-ink);
+  border: 1px solid transparent;
+  overflow: hidden;
+}
+button.theme-toggle:hover { background: var(--sn-surface-soft); border-color: transparent; }
+.theme-toggle svg {
+  position: absolute;
+  transition: transform 450ms var(--sn-ease), opacity 250ms var(--sn-ease);
+}
+/* Light mode shows the moon (the action on offer is "go dark"); dark shows the sun. */
+.theme-toggle .icon-sun  { opacity: 0; transform: rotate(-90deg) scale(0.4); }
+.theme-toggle .icon-moon { opacity: 1; transform: rotate(0) scale(1); }
+:root[data-theme="dark"] .theme-toggle .icon-sun  { opacity: 1; transform: rotate(0) scale(1); }
+:root[data-theme="dark"] .theme-toggle .icon-moon { opacity: 0; transform: rotate(90deg) scale(0.4); }
+
+/* Colours ease between themes for a moment after a switch. */
+:root.theme-fade, :root.theme-fade *, :root.theme-fade *::before, :root.theme-fade *::after {
+  transition: background-color 350ms var(--sn-ease), color 350ms var(--sn-ease),
+    border-color 350ms var(--sn-ease), box-shadow 350ms var(--sn-ease), fill 350ms var(--sn-ease) !important;
+}
+
+/* ---- Page entrance: each route settles in; result cards follow in a short cascade ---- */
+@keyframes page-enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes card-enter { from { opacity: 0; transform: translateY(14px) scale(0.985); } to { opacity: 1; transform: none; } }
+.page-enter { animation: page-enter 320ms var(--sn-ease) both; }
+.results-grid > .listing-card { animation: card-enter 420ms var(--sn-ease) both; animation-delay: calc(min(var(--i, 0), 8) * 45ms); }
+.detail-photos img:first-child { animation: card-enter 500ms var(--sn-ease) both; }
+.review-grid > li { animation: card-enter 420ms var(--sn-ease) both; animation-delay: calc(min(var(--i, 0), 6) * 60ms); }
+
+@media (max-width: 600px) {
+  .header-container .theme-toggle { order: 1; margin-left: auto; }
+  .header-container .nav-toggle { order: 2; }
+  .header-container .site-nav { order: 3; }
+}
+
+/* Dark-mode touch-ups for things that are not token-driven. */
+:root[data-theme="dark"] .listing-media img,
+:root[data-theme="dark"] .detail-photos img { filter: brightness(0.92); }
+:root[data-theme="dark"] .map-box { filter: brightness(0.85) contrast(1.05); }
+.header-container .site-nav { margin-left: auto; }
+@media (max-width: 600px) { .header-container .site-nav { margin-left: 0; } }

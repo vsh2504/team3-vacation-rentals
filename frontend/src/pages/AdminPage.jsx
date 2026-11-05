@@ -87,7 +87,7 @@ export default function AdminPage({ auth }) {
   useEffect(() => { load(); }, [load]);
 
   if (!auth) return <Alert variant="info">Log in as an administrator to moderate listings.</Alert>;
-  if (!isAdmin) return <Alert variant="error" title="Administrators only">Moderation requires an ADMIN account (the API returns 403 for other roles).</Alert>;
+  if (!isAdmin) return <Alert variant="error" title="Administrators only">Sign in with an administrator account.</Alert>;
 
   async function onAct(kind, l, okMsg) {
     setBusy(`${kind}-${l.id}`); setMsg(''); setError('');
@@ -102,8 +102,7 @@ export default function AdminPage({ auth }) {
   return (
     <section aria-labelledby="admin-h">
       <div className="dash-head">
-        <div><h2 id="admin-h" style={{ margin: 0 }}>Moderation queue</h2>
-          <p className="card-meta" style={{ margin: 0 }}>Review completeness, media, host and address before approving. Only approved listings are searchable.</p></div>
+        <div><h2 id="admin-h" style={{ margin: 0 }}>Moderation queue</h2></div>
         <Button variant="secondary" onClick={load} isLoading={loading} loadingText="Refreshing…">Refresh</Button>
       </div>
       <div className="seg" role="group" aria-label="Filter listings by status">

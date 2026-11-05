@@ -22,7 +22,6 @@ applied to Azure Database for PostgreSQL by running that SQL file
 """
 import json
 import os
-from datetime import date
 from decimal import Decimal
 
 from sqlalchemy import (CheckConstraint, Column, Date, DateTime, ForeignKey,
@@ -134,54 +133,139 @@ def get_db_url():
     return os.environ.get("STAYNEST_DB_URL", "")
 
 
-def _row_to_user(r):
-    return User(id=r.id, email=r.email, password_hash=r.password_hash, full_name=r.full_name,
-                role=UserRole(r.role), phone=r.phone)
+# -- Data Mapper strategies: one per entity type ---------------------------------
+class EntityMapper:
+    """Translate one entity type to and from its table row (Strategy)."""
 
-def _row_to_listing(r):
-    return Listing(id=r.id, host_id=r.host_id, title=r.title, description=r.description,
-        address=r.address, city=r.city, state=r.state, zip=r.zip, lat=float(r.lat), lng=float(r.lng),
-        price_per_night=Decimal(str(r.price_per_night)), max_guests=r.max_guests, bedrooms=r.bedrooms,
-        bathrooms=r.bathrooms, host_contact_name=r.host_contact_name,
-        host_contact_email=r.host_contact_email, host_contact_phone=r.host_contact_phone,
-        operating_start_time=r.operating_start_time, operating_end_time=r.operating_end_time,
-        check_in_time=r.check_in_time, check_out_time=r.check_out_time,
-        amenities=json.loads(r.amenities or "[]"),
-        available_times=r.available_times, status=ListingStatus(r.status),
-        photos=json.loads(r.photos or "[]"), videos=json.loads(getattr(r, "videos", None) or "[]"))
+    table: Table
 
-def _row_to_booking(r):
-    return Booking(id=r.id, listing_id=r.listing_id, customer_id=r.customer_id, check_in=r.check_in,
-        check_out=r.check_out, guests=r.guests, total_price=Decimal(str(r.total_price)),
-        status=BookingStatus(r.status), check_in_time=r.check_in_time,
-        check_out_time=r.check_out_time, location_name=r.location_name,
-        location_address=r.location_address, location_city=r.location_city,
-        location_state=r.location_state, location_zip=r.location_zip,
-        location_lat=float(r.location_lat) if r.location_lat is not None else None,
-        location_lng=float(r.location_lng) if r.location_lng is not None else None,
-        booked_date=r.booked_date, cancelled_at=r.cancelled_at)
+    def to_row(self, obj) -> dict:  # pragma: no cover - abstract
+        raise NotImplementedError
 
-def _row_to_review(r):
-    return Review(id=r.id, booking_id=r.booking_id, listing_id=r.listing_id, customer_id=r.customer_id,
-        rating=r.rating, comment=r.comment or "")
+    def from_row(self, row):  # pragma: no cover - abstract
+        raise NotImplementedError
 
 
-def _upsert(conn, table, values):
+class UserMapper(EntityMapper):
+    table = users_t
+
+    def to_row(self, u):
+        return dict(id=u.id, email=u.email, password_hash=u.password_hash,
+                    full_name=u.full_name, role=u.role.value, phone=u.phone)
+
+    def from_row(self, r):
+        return User(id=r.id, email=r.email, password_hash=r.password_hash,
+                    full_name=r.full_name, role=UserRole(r.role), phone=r.phone)
+
+
+class ListingMapper(EntityMapper):
+    table = listings_t
+
+    def to_row(self, li):
+        return dict(
+            id=li.id, host_id=li.host_id, title=li.title, description=li.description,
+            address=li.address, city=li.city, state=li.state, zip=li.zip,
+            lat=li.lat, lng=li.lng, price_per_night=Decimal(str(li.price_per_night)),
+            max_guests=li.max_guests, bedrooms=li.bedrooms, bathrooms=li.bathrooms,
+            host_contact_name=li.host_contact_name, host_contact_email=li.host_contact_email,
+            host_contact_phone=li.host_contact_phone,
+            operating_start_time=li.operating_start_time,
+            operating_end_time=li.operating_end_time,
+            check_in_time=li.check_in_time, check_out_time=li.check_out_time,
+            amenities=json.dumps(li.amenities), available_times=li.available_times,
+            status=li.status.value, photos=json.dumps(li.photos),
+            videos=json.dumps(li.videos))
+
+    def from_row(self, r):
+        return Listing(
+            id=r.id, host_id=r.host_id, title=r.title, description=r.description,
+            address=r.address, city=r.city, state=r.state, zip=r.zip,
+            lat=float(r.lat), lng=float(r.lng),
+            price_per_night=Decimal(str(r.price_per_night)), max_guests=r.max_guests,
+            bedrooms=r.bedrooms, bathrooms=r.bathrooms,
+            host_contact_name=r.host_contact_name, host_contact_email=r.host_contact_email,
+            host_contact_phone=r.host_contact_phone,
+            operating_start_time=r.operating_start_time, operating_end_time=r.operating_end_time,
+            check_in_time=r.check_in_time, check_out_time=r.check_out_time,
+            amenities=json.loads(r.amenities or "[]"), available_times=r.available_times,
+            status=ListingStatus(r.status), photos=json.loads(r.photos or "[]"),
+            videos=json.loads(getattr(r, "videos", None) or "[]"))
+
+
+class BookingMapper(EntityMapper):
+    table = bookings_t
+
+    def to_row(self, b):
+        return dict(
+            id=b.id, listing_id=b.listing_id, customer_id=b.customer_id,
+            check_in=b.check_in, check_out=b.check_out,
+            check_in_time=b.check_in_time, check_out_time=b.check_out_time,
+            guests=b.guests, total_price=Decimal(str(b.total_price)),
+            status=b.status.value, booked_date=b.booked_date, cancelled_at=b.cancelled_at,
+            location_name=b.location_name, location_address=b.location_address,
+            location_city=b.location_city, location_state=b.location_state,
+            location_zip=b.location_zip, location_lat=b.location_lat,
+            location_lng=b.location_lng)
+
+    def from_row(self, r):
+        return Booking(
+            id=r.id, listing_id=r.listing_id, customer_id=r.customer_id,
+            check_in=r.check_in, check_out=r.check_out, guests=r.guests,
+            total_price=Decimal(str(r.total_price)), status=BookingStatus(r.status),
+            check_in_time=r.check_in_time, check_out_time=r.check_out_time,
+            location_name=r.location_name, location_address=r.location_address,
+            location_city=r.location_city, location_state=r.location_state,
+            location_zip=r.location_zip,
+            location_lat=float(r.location_lat) if r.location_lat is not None else None,
+            location_lng=float(r.location_lng) if r.location_lng is not None else None,
+            booked_date=r.booked_date, cancelled_at=r.cancelled_at)
+
+
+class ReviewMapper(EntityMapper):
+    table = reviews_t
+
+    def to_row(self, rv):
+        return dict(id=rv.id, booking_id=rv.booking_id, listing_id=rv.listing_id,
+                    customer_id=rv.customer_id, rating=rv.rating, comment=rv.comment)
+
+    def from_row(self, r):
+        return Review(id=r.id, booking_id=r.booking_id, listing_id=r.listing_id,
+                      customer_id=r.customer_id, rating=r.rating, comment=r.comment or "")
+
+
+MAPPERS: dict[type, EntityMapper] = {
+    User: UserMapper(), Listing: ListingMapper(),
+    Booking: BookingMapper(), Review: ReviewMapper(),
+}
+
+
+def _write(conn, table, values, *, insert_only: bool):
+    """Insert, or upsert by primary key unless ``insert_only``."""
     pk = values["id"]
-    existing = conn.execute(select(table.c.id).where(table.c.id == pk)).first()
-    if existing:
+    if not insert_only and conn.execute(select(table.c.id).where(table.c.id == pk)).first():
         conn.execute(table.update().where(table.c.id == pk).values(**values))
     else:
         conn.execute(table.insert().values(**values))
 
-def _write(conn, table, values, *, insert_only: bool):
-    if insert_only:
-        conn.execute(table.insert().values(**values))
-    else:
-        _upsert(conn, table, values)
 
 def _constraint_name(exc: IntegrityError) -> str | None:
     return getattr(getattr(exc.orig, "diag", None), "constraint_name", None)
+
+
+def _enable_extensions(conn, dialect_name: str) -> None:
+    """PostgreSQL needs btree_gist for the booking overlap exclusion constraint."""
+    if dialect_name == "postgresql":
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS btree_gist"))
+
+
+def _is_booking_conflict(constraint, detail) -> bool:
+    return (constraint in {"excl_bookings_confirmed_overlap", "bookings_pkey"}
+            or "UNIQUE constraint failed: bookings.id" in detail)
+
+
+def _is_duplicate_review(constraint, detail) -> bool:
+    return (constraint == "uq_reviews_booking"
+            or "UNIQUE constraint failed: reviews.booking_id" in detail)
 
 
 class SqlBackedStore(InMemoryStore):
@@ -189,14 +273,15 @@ class SqlBackedStore(InMemoryStore):
         super().__init__()
         self._engine = engine
         with engine.begin() as conn:
-            if engine.dialect.name == "postgresql":
-                conn.execute(text("CREATE EXTENSION IF NOT EXISTS btree_gist"))
+            _enable_extensions(conn, engine.dialect.name)
             metadata.create_all(conn)
-            self.users = [_row_to_user(r) for r in conn.execute(select(users_t)).all()]
-            self.listings = [_row_to_listing(r) for r in conn.execute(select(listings_t)).all()]
-            self.bookings = [_row_to_booking(r) for r in conn.execute(select(bookings_t)).all()]
-            self.reviews = [_row_to_review(r) for r in conn.execute(select(reviews_t)).all()]
+            load = lambda kind: [MAPPERS[kind].from_row(r)
+                                 for r in conn.execute(select(MAPPERS[kind].table)).all()]
+            self.users, self.listings = load(User), load(Listing)
+            self.bookings, self.reviews = load(Booking), load(Review)
         self._seed_empty_database()
+        from .demo_seed import seed_demo_reviews
+        seed_demo_reviews(self)
 
     def _seed_empty_database(self):
         """Seed a brand-new development database once, with stable IDs."""
@@ -225,30 +310,9 @@ class SqlBackedStore(InMemoryStore):
 
         # One transaction makes first-run seeding retry-safe after an interruption.
         with self._engine.begin() as conn:
-            for user in seed_users:
-                conn.execute(users_t.insert().values(
-                    id=user.id, email=user.email, password_hash=user.password_hash,
-                    full_name=user.full_name, role=user.role.value, phone=user.phone))
-            for listing in seeded_store.listings:
-                conn.execute(listings_t.insert().values(
-                    id=listing.id, host_id=listing.host_id, title=listing.title,
-                    description=listing.description, address=listing.address,
-                    city=listing.city, state=listing.state, zip=listing.zip,
-                    lat=listing.lat, lng=listing.lng,
-                    price_per_night=Decimal(str(listing.price_per_night)),
-                    max_guests=listing.max_guests, bedrooms=listing.bedrooms,
-                    bathrooms=listing.bathrooms,
-                    host_contact_name=listing.host_contact_name,
-                    host_contact_email=listing.host_contact_email,
-                    host_contact_phone=listing.host_contact_phone,
-                    operating_start_time=listing.operating_start_time,
-                    operating_end_time=listing.operating_end_time,
-                    check_in_time=listing.check_in_time,
-                    check_out_time=listing.check_out_time,
-                    amenities=json.dumps(listing.amenities),
-                    available_times=listing.available_times,
-                    status=listing.status.value, photos=json.dumps(listing.photos),
-                    videos=json.dumps(listing.videos)))
+            for entity in (*seed_users, *seeded_store.listings):
+                mapper = MAPPERS[type(entity)]
+                conn.execute(mapper.table.insert().values(**mapper.to_row(entity)))
         self.users = seed_users
         self.listings = seeded_store.listings
 
@@ -260,61 +324,33 @@ class SqlBackedStore(InMemoryStore):
         try:
             self._persist(obj, insert_only=insert_only)
         except IntegrityError as exc:
-            constraint = _constraint_name(exc)
-            detail = str(exc.orig)
-            if isinstance(obj, Booking) and (
-                    constraint in {"excl_bookings_confirmed_overlap", "bookings_pkey"}
-                    or "UNIQUE constraint failed: bookings.id" in detail):
+            constraint, detail = _constraint_name(exc), str(exc.orig)
+            if isinstance(obj, Booking) and _is_booking_conflict(constraint, detail):
                 raise ApiError("CONFLICT", "Listing is not available for the requested dates and times") from exc
-            if isinstance(obj, Review) and (
-                    constraint == "uq_reviews_booking"
-                    or "UNIQUE constraint failed: reviews.booking_id" in detail):
+            if isinstance(obj, Review) and _is_duplicate_review(constraint, detail):
                 raise ApiError("CONFLICT", "One review per booking") from exc
             raise
 
+    def _snapshot_booking_location(self, booking: Booking) -> None:
+        """Capture the listing's location on a booking that has none yet."""
+        listing = next((row for row in self.listings if row.id == booking.listing_id), None)
+        if listing and not booking.location_address:
+            booking.location_name = listing.title
+            booking.location_address = listing.address
+            booking.location_city = listing.city
+            booking.location_state = listing.state
+            booking.location_zip = listing.zip
+            booking.location_lat = listing.lat
+            booking.location_lng = listing.lng
+
     def _persist(self, obj, *, insert_only=False):
+        mapper = MAPPERS.get(type(obj))
+        if mapper is None:
+            raise TypeError(f"Unsupported entity type: {type(obj).__name__}")
+        if isinstance(obj, Booking):
+            self._snapshot_booking_location(obj)
         with self._engine.begin() as conn:
-            if isinstance(obj, User):
-                _write(conn, users_t, dict(id=obj.id, email=obj.email, password_hash=obj.password_hash,
-                    full_name=obj.full_name, role=obj.role.value, phone=obj.phone),
-                    insert_only=insert_only)
-            elif isinstance(obj, Listing):
-                _write(conn, listings_t, dict(id=obj.id, host_id=obj.host_id, title=obj.title,
-                    description=obj.description, address=obj.address, city=obj.city, state=obj.state,
-                    zip=obj.zip, lat=obj.lat, lng=obj.lng, price_per_night=Decimal(str(obj.price_per_night)),
-                    max_guests=obj.max_guests, bedrooms=obj.bedrooms, bathrooms=obj.bathrooms,
-                    host_contact_name=obj.host_contact_name, host_contact_email=obj.host_contact_email,
-                    host_contact_phone=obj.host_contact_phone,
-                    operating_start_time=obj.operating_start_time,
-                    operating_end_time=obj.operating_end_time,
-                    check_in_time=obj.check_in_time, check_out_time=obj.check_out_time,
-                    amenities=json.dumps(obj.amenities), available_times=obj.available_times,
-                    status=obj.status.value, photos=json.dumps(getattr(obj, "photos", [])),
-                    videos=json.dumps(getattr(obj, "videos", []))), insert_only=insert_only)
-            elif isinstance(obj, Booking):
-                listing = next((row for row in self.listings if row.id == obj.listing_id), None)
-                if listing and not obj.location_address:
-                    obj.location_name = listing.title
-                    obj.location_address = listing.address
-                    obj.location_city = listing.city
-                    obj.location_state = listing.state
-                    obj.location_zip = listing.zip
-                    obj.location_lat = listing.lat
-                    obj.location_lng = listing.lng
-                _write(conn, bookings_t, dict(id=obj.id, listing_id=obj.listing_id,
-                    customer_id=obj.customer_id, check_in=obj.check_in, check_out=obj.check_out,
-                    check_in_time=obj.check_in_time, check_out_time=obj.check_out_time,
-                    guests=obj.guests, total_price=Decimal(str(obj.total_price)),
-                    status=obj.status.value, booked_date=obj.booked_date,
-                    cancelled_at=obj.cancelled_at, location_name=obj.location_name,
-                    location_address=obj.location_address, location_city=obj.location_city,
-                    location_state=obj.location_state, location_zip=obj.location_zip,
-                    location_lat=obj.location_lat, location_lng=obj.location_lng),
-                    insert_only=insert_only)
-            elif isinstance(obj, Review):
-                _write(conn, reviews_t, dict(id=obj.id, booking_id=obj.booking_id,
-                    listing_id=obj.listing_id, customer_id=obj.customer_id,
-                    rating=obj.rating, comment=obj.comment), insert_only=insert_only)
+            _write(conn, mapper.table, mapper.to_row(obj), insert_only=insert_only)
 
     def flush(self):
         for coll in (self.users, self.listings, self.bookings, self.reviews):

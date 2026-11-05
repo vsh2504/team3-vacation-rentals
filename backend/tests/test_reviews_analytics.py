@@ -198,3 +198,26 @@ class TestReviewsAnalytics(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DemoReviewSeedTests(unittest.TestCase):
+    def test_seed_adds_customers_completed_stays_and_reviews_once(self):
+        from datetime import date
+        from app.demo_seed import DEMO_CUSTOMERS, seed_demo_reviews
+        from app.repositories import InMemoryStore
+        from app.seed import load_seed
+        store = load_seed(InMemoryStore())
+        today = date(2026, 11, 5)
+        self.assertTrue(seed_demo_reviews(store, today))
+        self.assertFalse(seed_demo_reviews(store, today))  # idempotent
+        self.assertEqual(len(DEMO_CUSTOMERS), sum(u.email in dict(DEMO_CUSTOMERS) for u in store.users))
+        self.assertTrue(store.reviews)
+        by_id = {b.id: b for b in store.bookings}
+        for review in store.reviews:
+            booking = by_id[review.booking_id]
+            self.assertEqual("COMPLETED", booking.status.value)
+            self.assertLess(booking.check_out, today)
+            self.assertEqual(booking.customer_id, review.customer_id)
+            self.assertTrue(1 <= review.rating <= 5)
+        self.assertEqual(len(store.reviews), len({r.booking_id for r in store.reviews}))
+        self.assertGreater(len(store.bookings), len(store.reviews))  # one stay awaits a review

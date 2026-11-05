@@ -1,6 +1,6 @@
 // Frontend — Owner: Manoj (Manoj Ganjigatte Manjunatha)
 // Feature: Book & Cancel a Stay — customer bookings management.
-// Displays upcoming, completed, and cancelled stays with OpenStreetMap links,
+// Displays upcoming, completed, and cancelled stays with Google Maps links,
 // cancel workflows, completion triggers, and review submission (Requirements 3.1-3.6, 8.2-8.4).
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -51,7 +51,7 @@ export default function BookingsPage({ auth }) {
           <div className="empty-state" style={{ margin: 0 }}>
             <h3>Customer sign-in required</h3>
             <p style={{ marginBottom: '1rem' }}>
-              Please sign in to view your upcoming stays, past trips, and reservation details.
+              Sign in to see your stays.
             </p>
             <Link to="/auth" className="btn btn-primary">
               Sign In / Register
@@ -130,10 +130,8 @@ export default function BookingsPage({ auth }) {
   }
 
   function getMapUrl(b) {
-    if (b.location?.map_url) return b.location.map_url;
-    if (b.map_url) return b.map_url;
     if (b.location?.lat != null && b.location?.lng != null) {
-      return `https://www.openstreetmap.org/?mlat=${b.location.lat}&mlon=${b.location.lng}#map=16/${b.location.lat}/${b.location.lng}`;
+      return `https://www.google.com/maps/search/?api=1&query=${b.location.lat},${b.location.lng}`;
     }
     return null;
   }
@@ -143,9 +141,6 @@ export default function BookingsPage({ auth }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
         <div>
           <h2 id="bookings-heading" style={{ margin: 0 }}>My Bookings & Stays</h2>
-          <p className="card-meta" style={{ margin: '0.25rem 0 0' }}>
-            Manage upcoming reservations, view past trip details, and submit verified reviews.
-          </p>
         </div>
         <Link to="/" className="btn btn-secondary btn-sm">
           Browse Rentals
@@ -226,7 +221,6 @@ export default function BookingsPage({ auth }) {
       {loading && (
         <div className="loading-state" role="status">
           <Spinner size="lg" label="Loading your bookings…" />
-          <p>Retrieving your reservation history…</p>
         </div>
       )}
 
@@ -237,9 +231,6 @@ export default function BookingsPage({ auth }) {
             {activeTab === 'past' && 'No past or completed stays.'}
             {activeTab === 'cancelled' && 'No cancelled reservations.'}
             {activeTab === 'all' && 'You have no bookings on record yet.'}
-          </p>
-          <p style={{ color: 'var(--sn-ink-muted)', marginBottom: '1rem' }}>
-            Ready to plan your next trip? Explore curated homes across our destinations.
           </p>
           <Link to="/" className="btn btn-primary btn-sm">
             Find a Stay
@@ -256,7 +247,7 @@ export default function BookingsPage({ auth }) {
             const isCompleted = b.status === 'COMPLETED';
             const isCancelled = b.status === 'CANCELLED' || b.stay_state === 'cancelled';
             const isPastConfirmed = isConfirmed && b.check_out <= todayStr;
-            const hasReviewed = reviewedBookingIds.has(b.id);
+            const hasReviewed = b.has_review === true || reviewedBookingIds.has(b.id);
             const isBusy = actionBusyId === b.id;
             const title = b.listing?.title || b.location?.name || `Listing #${b.listing_id}`;
             const photoUrl = b.listing?.photos?.[0];
@@ -303,7 +294,7 @@ export default function BookingsPage({ auth }) {
                       </div>
                     </div>
 
-                    {/* Address & OpenStreetMap link (Requirement 3.4) */}
+                    {/* Address & Google Maps link (Requirement 3.4) */}
                     <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem', fontSize: 'var(--sn-text-sm)' }}>
                       <span style={{ color: 'var(--sn-ink-muted)' }}>
                         {b.location?.address ? `${b.location.address}, ${b.location.city}, ${b.location.state} ${b.location.zip}` : 'Location on record'}
@@ -315,9 +306,9 @@ export default function BookingsPage({ auth }) {
                           rel="noopener noreferrer"
                           className="btn btn-secondary btn-sm"
                           style={{ padding: '0.2rem 0.5rem', minHeight: '30px', fontSize: 'var(--sn-text-xs)' }}
-                          aria-label={`Open ${title} location on OpenStreetMap (opens in new tab)`}
+                          aria-label={`Open ${title} location on Google Maps (opens in new tab)`}
                         >
-                          <span aria-hidden="true">📍</span> View on OpenStreetMap
+                          <span aria-hidden="true">📍</span> View on Google Maps
                         </a>
                       )}
                     </div>
@@ -451,7 +442,6 @@ export default function BookingsPage({ auth }) {
                         {hasReviewed ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
                             <Badge variant="accent">★ Reviewed</Badge>
-                            <span className="card-meta">You have submitted a review for this stay.</span>
                           </div>
                         ) : (
                           <ReviewForm

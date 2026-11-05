@@ -12,6 +12,7 @@
   --sn-primary: #0b6169;        /* tide teal; white text on it: 7.1:1 */
   --sn-primary-hover: #084a50;
   --sn-primary-tint: #d9eeee;
+  --sn-on-primary: #ffffff;     /* text on --sn-primary fills */
   --sn-accent: #f2b134;         /* marigold: ratings, "booked today"; use --sn-ink text on it */
   --sn-accent-ink: #12272d;
   --sn-success: #1b6a38;        /* 6.2:1 on white */
@@ -51,6 +52,38 @@
   /* Layout */
   --sn-page-max: 1200px; --sn-gutter: clamp(1rem, 4vw, 2rem);
   --sn-bp-sm: 600px; --sn-bp-md: 900px; --sn-bp-lg: 1200px; /* reference for @media */
+}
+
+/* Dark theme. Selected by data-theme on <html> (see src/theme.js); the inline
+   script in index.html sets it before first paint. Same names, new values:
+   --sn-primary becomes a light teal so links and fills stay readable, and
+   --sn-on-primary flips to dark ink for text sitting on those fills. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --sn-ink: #e7eff1;            /* on surface: 14.6:1 */
+  --sn-ink-muted: #a3b8be;      /* on surface: 8.2:1 */
+  --sn-surface: #0f1a1d;
+  --sn-surface-soft: #16262a;
+  --sn-surface-sunk: #1e3238;
+  --sn-line: #2b4249;
+  --sn-line-strong: #7b959c;    /* controls: 5.4:1 */
+  --sn-primary: #5cc8d1;        /* on surface: 9.4:1 */
+  --sn-primary-hover: #8adce3;
+  --sn-primary-tint: #12363b;
+  --sn-on-primary: #062a2e;     /* on --sn-primary: 9.1:1 */
+  --sn-accent: #f2b134;
+  --sn-accent-ink: #12272d;
+  --sn-success: #6fcf97;
+  --sn-success-tint: #12301f;
+  --sn-warning: #f0b84a;
+  --sn-warning-tint: #382a0a;
+  --sn-danger: #ff8f86;
+  --sn-danger-tint: #3b1714;
+  --sn-focus: #8adce3;
+  --sn-focus-halo: #0f1a1d;
+  --sn-shadow-rest: 0 1px 2px rgb(0 0 0 / 0.45);
+  --sn-shadow-raised: 0 4px 14px rgb(0 0 0 / 0.5);
+  --sn-shadow-overlay: 0 14px 38px rgb(0 0 0 / 0.6);
 }
 
 /* Shared accessibility primitives that pages can rely on. */
