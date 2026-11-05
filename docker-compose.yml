@@ -1,28 +1,72 @@
+name: staynest
+
+# Docker Compose mirror of scripts/start_local.sh:
+#   db (healthy) -> api (healthy) -> web (healthy)
+#   postgres volume persists users, listings, bookings, reviews, and moderation state
+#   Vite proxies /api to http://api:8000 inside the Compose network
+#   host ports can be overridden in .env (see .env.example)
+#
+# Start:  docker compose up --build -d
+# Health: docker compose ps
+# Logs:   docker compose logs -f api
+# Stop:   docker compose down          (keeps the pgdata volume)
+# Reset:  docker compose down -v       (DESTROYS the database; only when intended)
+
 services:
   db:
     image: postgres:16
     environment:
-      POSTGRES_USER: staynest
-      POSTGRES_PASSWORD: staynest-dev-only
-      POSTGRES_DB: staynest
+      POSTGRES_USER: ${POSTGRES_USER:-staynest}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-staynest-dev-only}
+      POSTGRES_DB: ${POSTGRES_DB:-staynest}
     ports:
-      - "5432:5432"
+      - "${STAYNEST_PGPORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      # Baseline schema for a brand-new volume. The API also creates missing
+      # tables, so an existing volume keeps its data and is never recreated.
+      - ./backend/db/migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
   api:
     build: ./backend
     environment:
-      DATABASE_URL: postgresql://staynest:staynest-dev-only@db:5432/staynest
-      JWT_SECRET: dev-only-change-in-azure-key-vault
+      # Canonical backend variable (backend/app/db.py). Not DATABASE_URL.
+      STAYNEST_DB_URL: postgresql+psycopg://${POSTGRES_USER:-staynest}:${POSTGRES_PASSWORD:-staynest-dev-only}@db:5432/${POSTGRES_DB:-staynest}
+      JWT_SECRET: ${JWT_SECRET:-dev-only-change-in-azure-key-vault}
     ports:
-      - "8000:8000"
+      - "${STAYNEST_API_PORT:-8000}:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).status == 200 else 1)"]
+      interval: 5s
+      timeout: 5s
+      retries: 18
+      start_period: 10s
+
   web:
     build: ./frontend
+    environment:
+      # vite.config.js proxying: /api -> API container, not the web container.
+      STAYNEST_API_URL: http://api:8000
+      VITE_API_URL: /api
     ports:
-      - "5173:5173"
+      - "${STAYNEST_WEB_PORT:-5173}:5173"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5173/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 18
+      start_period: 10s
+
 volumes:
   pgdata:

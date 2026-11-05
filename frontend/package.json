@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:browser": "bash tests/run-browser-acceptance.sh",
+    "test:browser:live": "bash tests/run-browser-acceptance.sh --live"
   },
   "dependencies": {
     "react": "^18.3.1",

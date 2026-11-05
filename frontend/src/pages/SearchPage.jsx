@@ -1,50 +1,146 @@
 // Frontend — Owner: Vinayak Gupta (team lead)
 // Feature: Find a Stay — search page (filters, results, map).
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ListingCard from '../components/ListingCard.jsx';
 import MapView from '../components/MapView.jsx';
-import { api } from '../api/client.js';
+import { api, qs } from '../api/client.js';
 import seed from '../../../backend/data/listings_seed.json';
-// Sprint 1-2 (Vinayak): search calls the API, not the seed.
-// Seed is only the fallback if the API is not running.
+
+const DAY = 86400000;
+const nightsBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / DAY);
+
+function validate(f) {
+  const e = {};
+  if (!(Number(f.guests) >= 1)) e.guests = 'Enter at least 1 guest.';
+  if (f.checkIn && !f.checkOut) e.checkOut = 'Choose a check-out date.';
+  if (f.checkOut && !f.checkIn) e.checkIn = 'Choose a check-in date.';
+  if (f.checkIn && f.checkOut) {
+    const n = nightsBetween(f.checkIn, f.checkOut);
+    if (n <= 0) e.checkOut = 'Check-out must be after check-in.';
+    else if (n > 14) e.checkOut = `Stays are limited to 14 nights (you chose ${n}).`;
+  }
+  return e;
+}
+
 export default function SearchPage() {
-  const [zip, setZip] = useState(''); const [city, setCity] = useState(''); const [state, setState] = useState('');
-  const [guests, setGuests] = useState(2); const [checkIn, setCheckIn] = useState(''); const [checkOut, setCheckOut] = useState('');
-  const [results, setResults] = useState([]); const [error, setError] = useState(''); const [source, setSource] = useState('');
-  async function run(e) {
+  const [f, setF] = useState({ checkIn: '', checkOut: '', checkInTime: '', checkOutTime: '', guests: 2, city: '', state: '', zip: '', address: '' });
+  const [errors, setErrors] = useState({});
+  const [results, setResults] = useState([]);
+  const [status, setStatus] = useState('idle'); // idle | loading | done
+  const [error, setError] = useState('');
+  const [source, setSource] = useState('');
+  const [selectedId, setSelectedId] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+  const [geoMsg, setGeoMsg] = useState('');
+  const [picked, setPicked] = useState(null);
+  const [view, setView] = useState('list');
+  const set = k => e => setF(p => ({ ...p, [k]: e.target.value }));
+  const nights = f.checkIn && f.checkOut ? nightsBetween(f.checkIn, f.checkOut) : null;
+  const detailSearch = qs({ check_in: f.checkIn, check_out: f.checkOut, check_in_time: f.checkInTime, check_out_time: f.checkOutTime, guests: f.guests });
+  const errRef = useRef(null);
+
+  async function run(e, override) {
     if (e) e.preventDefault();
-    if (checkIn && checkOut) {
-      const nights = (new Date(checkOut) - new Date(checkIn)) / 86400000;
-      if (nights <= 0) return setError('Check-out must be after check-in.');
-      if (nights > 14) return setError('Stay cannot exceed 14 days (API will also return 422).');
-    }
-    setError('');
+    const v = validate(f);
+    setErrors(v);
+    if (Object.keys(v).length) { setError('Please fix the highlighted fields.'); return; }
+    setError(''); setStatus('loading'); setSelectedId(null);
+    const addr = override ?? f.address;
+    const params = { check_in: f.checkIn, check_out: f.checkOut, check_in_time: f.checkInTime, check_out_time: f.checkOutTime,
+      guests: f.guests, city: f.city, state: f.state, zip: f.zip, address: addr, include_unavailable: f.checkIn ? true : '' };
     try {
-      const data = await api.search({ zip, city, state, guests, check_in: checkIn, check_out: checkOut });
+      const data = await api.search(params);
       setResults(Array.isArray(data) ? data : []); setSource('API');
     } catch (err) {
-      setError(`${err.message} — showing seed fallback.`);
-      setResults(seed.filter(l => l.status === 'APPROVED' && (!zip || l.zip === zip) && (!city || l.city.toLowerCase() === city.toLowerCase()) && (!state || l.state.toLowerCase() === state.toLowerCase()) && l.max_guests >= guests));
-      setSource('seed fallback');
-    }
+      if (/network|failed to fetch|Request failed/i.test(err.message) || err instanceof TypeError) {
+        setError(`${err.message} — showing sample listings instead.`);
+        setResults(seed.filter(l => l.status === 'APPROVED' && (!f.zip || l.zip === f.zip)
+          && (!f.city || l.city.toLowerCase() === f.city.toLowerCase())
+          && (!f.state || l.state.toLowerCase() === f.state.toLowerCase()) && l.max_guests >= f.guests));
+        setSource('sample data fallback');
+      } else { setError(err.message); setResults([]); setSource(''); }
+    } finally { setStatus('done'); }
   }
-  useEffect(() => { run(); }, []);
+  useEffect(() => { run(); }, []); // eslint-disable-line
+
+  async function lookup() {
+    setGeoMsg(''); setSuggestions([]);
+    if (f.address.trim().length < 3) { setGeoMsg('Type at least 3 characters of an address.'); return; }
+    setGeoMsg('Looking up address…');
+    try {
+      const r = await api.geocode(f.address);
+      setSuggestions([r]); setGeoMsg(`1 match from ${r.provider || 'address provider'}.`);
+    } catch (err) { setGeoMsg(err.message); }
+  }
+  function choose(s) {
+    setPicked(s); setSuggestions([]); setGeoMsg(`Selected: ${s.display_name}`);
+    setF(p => ({ ...p, address: s.display_name, city: s.city || p.city, state: s.state || p.state, zip: s.zip || p.zip }));
+  }
+
+  const Field = ({ id, label, error: er, hint, children }) => (
+    <div className="field-group">
+      <label htmlFor={id}>{label}</label>
+      {children}
+      {hint && !er && <span className="field-hint" id={`${id}-hint`}>{hint}</span>}
+      {er && <span className="field-error" id={`${id}-err`} role="alert">{er}</span>}
+    </div>
+  );
+  const aria = (id, er, hint) => ({ id, 'aria-invalid': er ? 'true' : undefined, 'aria-describedby': er ? `${id}-err` : hint ? `${id}-hint` : undefined });
+
   return (
     <section>
-      <h2>Search vacation rentals (max stay 14 days)</h2>
-      <form onSubmit={run} className="search-bar">
-        <label>Zip <input value={zip} onChange={e => setZip(e.target.value)} placeholder="95110" /></label>{' '}
-        <label>City <input value={city} onChange={e => setCity(e.target.value)} placeholder="San Jose" /></label>{' '}
-        <label>State <input value={state} onChange={e => setState(e.target.value)} placeholder="CA" /></label>{' '}
-        <label>Guests <input type="number" min="1" value={guests} onChange={e => setGuests(Number(e.target.value))} /></label>{' '}
-        <label>Check-in <input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)} /></label>{' '}
-        <label>Check-out <input type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)} /></label>{' '}
-        <button type="submit">Search</button>
+      <h2>Find a stay</h2>
+      <form onSubmit={run} className="search-bar" noValidate aria-label="Search vacation rentals">
+        <Field id="s-in" label="Check-in date" error={errors.checkIn}><input type="date" {...aria('s-in', errors.checkIn)} value={f.checkIn} onChange={set('checkIn')} /></Field>
+        <Field id="s-in-t" label="Check-in time"><input type="time" id="s-in-t" value={f.checkInTime} onChange={set('checkInTime')} /></Field>
+        <Field id="s-out" label="Check-out date" error={errors.checkOut} hint="Maximum stay is 14 nights."><input type="date" {...aria('s-out', errors.checkOut, true)} value={f.checkOut} min={f.checkIn || undefined} onChange={set('checkOut')} /></Field>
+        <Field id="s-out-t" label="Check-out time"><input type="time" id="s-out-t" value={f.checkOutTime} onChange={set('checkOutTime')} /></Field>
+        <Field id="s-g" label="Guests" error={errors.guests}><input type="number" min="1" {...aria('s-g', errors.guests)} value={f.guests} onChange={e => setF(p => ({ ...p, guests: Number(e.target.value) }))} /></Field>
+        <Field id="s-city" label="City"><input id="s-city" value={f.city} onChange={set('city')} placeholder="San Jose" autoComplete="address-level2" /></Field>
+        <Field id="s-state" label="State"><input id="s-state" value={f.state} onChange={set('state')} placeholder="CA" autoComplete="address-level1" /></Field>
+        <Field id="s-zip" label="ZIP"><input id="s-zip" value={f.zip} onChange={set('zip')} placeholder="95110" inputMode="numeric" autoComplete="postal-code" /></Field>
+        <Field id="s-addr" label="Address" hint="Optional. Look up to autofill city, state and ZIP.">
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input id="s-addr" aria-describedby="s-addr-hint s-addr-msg" value={f.address} onChange={e => { set('address')(e); setPicked(null); }} placeholder="100 Main St, San Jose" autoComplete="street-address" />
+            <button type="button" className="btn btn-ghost btn-sm" onClick={lookup}>Look up</button>
+          </div>
+          <span id="s-addr-msg" role="status" className="field-hint">{geoMsg}</span>
+          {suggestions.length > 0 && (
+            <ul role="listbox" aria-label="Address suggestions" style={{ listStyle: 'none', padding: 0, margin: '4px 0' }}>
+              {suggestions.map((s, i) => (
+                <li key={i} role="option" aria-selected={picked === s}>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => choose(s)}>{s.display_name}</button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Field>
+        <button type="submit" className="btn btn-primary" disabled={status === 'loading'} aria-busy={status === 'loading'}>
+          {status === 'loading' ? 'Searching…' : 'Search'}
+        </button>
       </form>
-      {error && <p role="alert">{error}</p>}
-      <p>{(results || []).length} listings match ({source}).</p>
-      <MapView listings={results || []} />
-      <div className="results-grid">{(results || []).map(l => <ListingCard key={l.id} listing={l} />)}</div>
+      {nights > 0 && nights <= 14 && <p className="card-meta">{nights} night{nights === 1 ? '' : 's'} selected.</p>}
+      {error && <p role="alert" className="alert alert-danger" ref={errRef}>{error}</p>}
+      <p role="status" aria-live="polite">
+        {status === 'loading' ? 'Searching…' : status === 'done' ? `${results.length} listing${results.length === 1 ? '' : 's'} found${source ? ` (${source})` : ''}.` : ''}
+      </p>
+      <div role="group" aria-label="Results view" className="view-toggle" style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+        <button type="button" className="btn btn-sm btn-ghost" aria-pressed={view === 'list'} onClick={() => setView('list')}>List</button>
+        <button type="button" className="btn btn-sm btn-ghost" aria-pressed={view === 'map'} onClick={() => setView('map')}>Map</button>
+      </div>
+      {status === 'done' && !results.length && !error && (
+        <p className="alert">No listings match. Try different dates, fewer guests, or a wider location.</p>
+      )}
+      <div className={`search-layout view-${view}`} style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))' }}>
+        <div className="results-grid" hidden={view === 'map'} style={view === 'map' ? undefined : undefined}>
+          {results.map((l, i) => (
+            <ListingCard key={l.id} listing={l} index={i} selected={l.id === selectedId} onSelect={setSelectedId} search={detailSearch} />
+          ))}
+        </div>
+        <div hidden={view === 'list' && false}>
+          <MapView listings={results} selectedId={selectedId} onSelect={setSelectedId} />
+        </div>
+      </div>
     </section>
   );
 }

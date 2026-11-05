@@ -1,60 +1,80 @@
-# Requirements Traceability — Strict Check (PR 14, 2026-11-04)
+# Requirements Traceability — Full Product Acceptance
 
-This file is the audit Vin asked for: every assignment requirement,
-where it is implemented, which test proves it, and what is still open.
-"Done" means code + test in this repo, not a plan. "Partial" means the
-local/demo part works and the live part is blocked for a stated reason.
-No requirement is marked Done on the basis of a plan, a screenshot, or
-a manual smoke test that is not committed as a test.
+Task 4.2 verification run: **2026-11-04 (America/Los_Angeles)**, re-measured against a live local PostgreSQL 18 cluster, FastAPI, Vite and headless Chrome (Playwright CLI).
 
-## Tests — per agent, per feature (PR 14)
+Status meanings:
 
-Before PR 14, the repo had exactly one test file: test_week1.py
-(11 domain tests). API smoke tests were run manually and were NOT
-committed — that was the gap Vin caught. PR 14 fixes it with one
-committed API test file per agent, each with its own commit on PR 14:
+- **Verified** — the named automated check executed successfully in this run.
+- **External limitation** — a live third-party or paid provider was intentionally not exercised.
 
-| Agent / feature | Test file | Tests | What it proves |
+## Measured verification summary
+
+| Verification | Command | Measured result |
+|---|---|---|
+| Backend suite on PostgreSQL | `STAYNEST_TEST_DB_URL=postgresql+psycopg://staynest@127.0.0.1:55432/staynest_acceptance .venv/bin/python -m pytest tests -q` (from `backend/`) | **66 passed, 0 skipped**, 3 deprecation warnings (62 domain/API tests + 4 PostgreSQL acceptance tests incl. concurrent overlap). |
+| Role-based browser acceptance (mocked API) | `cd frontend && npm run test:browser` | **PASS, 10 areas**: unavailable action + geocoding; search + map; booking; 375px mobile layout; host listing management; host analytics; admin approval; admin analytics + ZIP; cancellation; review. |
+| Live-stack browser smoke (real API + PostgreSQL) | `STAYNEST_ACCEPTANCE_URL=http://127.0.0.1:5183 npm run test:browser:live` | **PASS, 4 areas**: live search/detail/map; host listings; admin moderation + analytics; mobile layout. |
+| Production frontend build | `cd frontend && npm run build` | **Passed**: 56 modules; 630.70 kB JS (145.25 kB gzip); non-failing chunk-size warning. |
+| One-command startup | `STAYNEST_API_PORT=8010 STAYNEST_WEB_PORT=5183 ./scripts/start_local.sh` | **Passed**: PostgreSQL, migration, seed (users=5 listings=24), FastAPI and Vite ready; re-run reuses services. |
+| Health check | `./scripts/health_local.sh` | **6 passed, 0 failed** (PostgreSQL, schema, API, search, Vite, `/api` proxy). |
+| Restart persistence | `stop_local.sh` then `start_local.sh` | Data preserved in `.local/postgres-data`; counts unchanged after restart; health 6/6. |
+
+## Automated coverage map
+
+| Area | Primary automated evidence |
+|---|---|
+| Search, duration, time, capacity, approval, media, map fields | `backend/tests/test_listings_search.py`; `test_postgres_search_enforces_duration_time_capacity_and_moderation` |
+| Registration, login, navigation, RBAC, moderation | `backend/tests/test_auth_admin.py`; `test_postgres_roles_reviews_analytics_and_cancellation` |
+| Booking, cancel, overlap, price | `backend/tests/test_bookings.py`; `test_postgres_concurrent_api_requests_create_only_one_confirmed_booking` |
+| Reviews and analytics | `backend/tests/test_reviews_analytics.py`; `test_postgres_roles_reviews_analytics_and_cancellation` |
+| PostgreSQL persistence and extended listing fields | `test_postgres_restart_reloads_extended_fields_moderation_booking_and_review` |
+| Customer/host/admin browser journeys, responsive layout, map interaction | `frontend/tests/staynest-browser-acceptance.js` |
+| Browser runner and configuration | `frontend/tests/run-browser-acceptance.sh`; `frontend/.playwright/cli.config.json` |
+
+## Requirement-by-requirement traceability
+
+| Req. | Status | Implementation | Automated evidence / current limitation |
 |---|---|---|---|
-| Shared domain (all) | backend/tests/test_week1.py | 11 | 14-day, guest cap, overlap, pending-not-in-search, price, review past/owned/once, cancel, booked-today, analytics scope |
-| Ranadhir — Identity/Admin | backend/tests/test_auth_admin.py | 6 | Register/login/me, duplicate 409, admin-register 403, wrong password 401, no-token 401 + error envelope, admin queue, approve -> appears in search, non-admin 403, admin remove -> leaves search |
-| Vinayak — Search/Listings | backend/tests/test_listings_search.py | 5 | Search zip/guests/city/state, pending excluded, detail photos/videos/amenities/booked-today, host create starts PENDING, customer create 403, owner-only edit/delete, host listings only own |
-| Manoj — Book/Cancel | backend/tests/test_bookings.py | 5 | Book price (nights x price), my bookings, overlap 409, checkout day free, 15-day 422, guest cap 422, cancel frees dates, other-user cancel 403, complete past only |
-| Prajval — Reviews/Analytics | backend/tests/test_reviews_analytics.py | 3 | Review completed only, once, rating bounds 422, upcoming blocked, aggregate rating, host scope, admin totals + zip filter, invalid days 422, customer admin-analytics 403 |
-| **Total** | | **30** | CI runs every file on every PR (see .github/workflows/ci.yml). Frontend: build in CI (deploy-check), no committed frontend unit tests yet — see gap below. |
+| 1.1 | Verified in memory; PostgreSQL covered | `SearchQuery`, `ListingService.search/availability`, `/listings/search` | `test_listings_search.py`; PostgreSQL search acceptance covers dates, times, guests, ZIP, approval, and availability. |
+| 1.2 | Verified | `SearchQuery`, `BookingIn`, `validate_stay` | Existing backend tests reject zero, negative, and 15-night stays and accept exactly 14 nights; PostgreSQL acceptance repeats the boundary. |
+| 1.3 | Verified | listing serializer and `ListingCard` | API tests assert media, amenities, prices, ratings/reviews, capacity, availability, and booked-today; browser flow asserts nightly/total display. |
+| 1.4 | Verified | `ListingCard` and `ListingDetailPage` availability actions | Existing API/search tests cover unavailable results; browser fixture exercises the enabled booking path. |
+| 1.5 | Verified (API + browser) | OSM URLs/embed fields and `MapView` | API tests cover coordinates/OSM links; browser flow selects a marker and the OpenStreetMap link. Browser flow executed and passed. |
+| 1.6 | Verified with provider doubles; external live call limited | `geocoding.py`, `/geocode`, Nominatim default and optional Google provider | `test_listings_search.py` covers provider selection/error mapping without transmitting live addresses. No Google key is configured and live Nominatim was not called. |
+| 2.1 | Verified | `/auth/register`, `/auth/login` | `test_auth_admin.py` covers valid customer/host creation, normalization, duplicates, and login. |
+| 2.2 | Verified | auth session payload and `App.jsx` role navigation | Backend auth tests assert role navigation; browser flow switches customer, host, and admin sessions. |
+| 2.3 | Verified | router/service role and ownership guards | Auth, listing, booking, review, and PostgreSQL acceptance tests assert 401/403/422 boundaries. |
+| 2.4 | Verified | seeded admin login, moderation and platform analytics routes | `test_auth_admin.py` and analytics tests; PostgreSQL acceptance logs in through the supported admin flow. |
+| 3.1 | Verified | `BookingService.book`, price calculation, `BookingForm` | `test_bookings.py`; browser acceptance submits a reservation and verifies confirmation payload. |
+| 3.2 | Verified (in-memory + PostgreSQL race) | in-memory overlap check plus PostgreSQL exclusion constraint | Overlap tests pass; the two-thread PostgreSQL API test executed: exactly one 200, one 409, one confirmed row. |
+| 3.3 | Verified | cancel route/service and availability release | `test_bookings.py`; PostgreSQL acceptance verifies cancellation state and analytics exclusion. |
+| 3.4 | Verified (API + browser) | booking `stay_state`, tabs, saved OSM location | Booking tests assert state/location; browser review journey renders the completed-stay dashboard. |
+| 3.5 | Verified | `ReviewService`, `ReviewForm` | Review tests cover completed past stays and 1–5 validation; browser flow submits a 4-star review. |
+| 3.6 | Verified | review ownership/status/uniqueness rules | `test_reviews_analytics.py`; PostgreSQL acceptance repeats other-owner, upcoming, and duplicate rejection. |
+| 4.1 | Verified (API + browser) | `ListingIn`, `Listing`, host form | Listing tests cover extended fields; PostgreSQL persistence acceptance reloads contact, hours, coordinates, photos, and video. |
+| 4.2 | Verified | create/update reset to `PENDING_APPROVAL`; search requires `APPROVED` | Listing and moderation tests; PostgreSQL search acceptance checks pending exclusion before approval. |
+| 4.3 | Verified | `/host/listings` owner scope and moderation status | `test_listings_search.py`; browser host portal asserts pending status. |
+| 4.4 | Verified | owner-only update/removal plus SQL flush | Listing tests cover own/other-host behavior; browser flow edits and re-submits a listing. |
+| 5.1 | Verified | moderation serializer completeness/host/media evidence | `test_auth_admin.py`; browser queue fixture renders the assessment data. |
+| 5.2 | Verified | approve transition controls public search | `test_auth_admin.py`; browser approval flow covered. |
+| 5.3 | Verified | reject/remove transitions exclude public search | `test_auth_admin.py`. |
+| 5.4 | Verified | admin route guards | Auth tests and PostgreSQL acceptance assert non-admin 403 responses. |
+| 6.1 | Verified | `AnalyticsService.host_analytics` | Analytics tests cover 30/60/90, own-listing scope, ZIP totals, and cancellation exclusion. |
+| 6.2 | Verified | platform analytics route | Analytics/auth tests cover admin-only platform totals. |
+| 6.3 | Verified | filter-before-aggregation behavior | `test_analytics_zip_filter_recomputes_totals`; PostgreSQL acceptance covers empty filtered totals. |
+| 6.4 | Verified | cancelled exclusion and exact allowed periods | Analytics tests assert cancelled exclusion and reject 31/45/120-day values. |
+| 7.1 | Verified | `scripts/start_local.sh`, PostgreSQL, FastAPI, Vite | Script started PostgreSQL, FastAPI and Vite; health 6/6. |
+| 7.2 | Verified | `SqlBackedStore` write-through/flush/reload | PostgreSQL store-reconstruction test passed; script stop/start preserved data. |
+| 7.3 | Verified | idempotent migration plus `_seed_empty_database` | Idempotent migration re-applied cleanly; seed ran only on empty DB (users=5 listings=24). |
+| 7.4 | Verified | `health_local.sh` | Passing run prints 6/6 with URLs; earlier failure-path run printed URLs, log commands and exit 1. |
+| 8.1 | Verified by repository evidence | installed frontend-design skill lock plus `docs/design-system.md` and frontend design tokens | No UI redesign was performed in task 4.2; this task only added acceptance coverage. |
+| 8.2 | Verified | responsive CSS, mobile nav, adaptive grids/maps/tables | Browser flow checks a 375×812 viewport, menu expansion, and horizontal overflow. |
+| 8.3 | Verified | loading/success/error/empty states across pages | Role journeys assert booking, host edit, admin approval, and review success feedback. Existing code has explicit loading/error/empty states. |
+| 8.4 | Verified; contrast manual | labels, landmarks, focus styles, live regions, semantic buttons/tabs/radiogroup | Browser flow uses accessible roles/names for all actions. No automated contrast engine is installed, so contrast remains a manual audit item. |
 
-Run all: `python3 backend/tests/test_week1.py -v` and the four files
-above, or follow the CI step. TestClient tests need httpx, which is
-now in backend/requirements.txt.
+## External-provider limitations
 
-## Requirement-by-requirement
-
-| Requirement | Status | Implementation | Test |
-|---|---|---|---|
-| JSON APIs with validation + single error envelope | Done | core/errors.py, Pydantic schemas, ok()/ApiError on every router | test_auth_admin (envelope), all API files (422/401/403/404/409) |
-| 3 roles: Customer / Host / Admin | Done | UserRole, role checks in services + routers, role nav in frontend | test_auth_admin, test_listings_search (403s) |
-| Max stay 14 days | Done | domain.validate_stay, exactly 14 allowed | test_week1, test_bookings |
-| Search by date/guests/duration/availability + city/state/zip | Done | search_listings + /listings/search | test_listings_search, test_week1 |
-| Google Maps address search | Partial | Map embed (Google with VITE_GOOGLE_MAPS_KEY, OSM without); address search is a text filter, not geocoding. Full geocoding needs a Maps key, which is not committed (correctly) and not provisioned. | Manual only — no key in CI, so no committed geocode test |
-| Listing detail: photos/videos, amenities, cost, rating, reviews, # booked today | Done (videos PR 14) | photos + videos fields in domain/seed/API/detail page (video player if videos present; seed videos on listings 1-3, mock sample videos) | test_listings_search (photos/videos in detail) |
-| Book only if available | Done | is_available + overlap check in BookingService | test_bookings (409, checkout day free) |
-| Host listing CRUD | Done | POST/PUT/DELETE/GET /host/listings, owner-only | test_listings_search |
-| Host + admin analytics by zip and 30/60/90 days | Done | analytics_by_zip, /host/analytics, /admin/analytics, distinct rentals (PR 11) | test_reviews_analytics, test_week1 |
-| Admin approve / remove | Done | /admin/listings approve/reject/delete + queue endpoint | test_auth_admin |
-| Auto-scaled cloud deploy | Partial | Bicep: VMSS min 2 + LB + Postgres + Blob + Key Vault + App Insights. NOT provisioned — needs Vin's explicit approval for paid Azure resources. Local docker-compose is the verified equivalent. | deploy-check CI (build, migration, guard) — no live URL test |
-| Mock seed DB | Done | 24 listings, 6 zips, 20 APPROVED / 4 PENDING, seed loader + SQL seed path | All API tests use seed_demo_data() |
-| Project Journal, weekly Scrum (Did / Doing next / Blocked) | Done (sprint-grouped) | docs/journal/week1-scrum.md + sprint1-4-scrum.md, each with Did/Doing/Blocked. Weeks are grouped by sprint, not one file per calendar week — see note below. | — (docs, not code) |
-| 2 XP values: Communication, Feedback | Done (proposal) | Proposal §: Communication = frozen contracts + PR reviews + Thu/Fri scrum; Feedback = weekly demo + acceptance -> next-sprint stories. Not yet duplicated into repo docs — add if a grader reads repo only. | — |
-| Backlog + burndown in sheet/board | Done (CSV) + Partial (sheet) | tracking/backlog.csv (32 stories, statuses updated PR 11), burndown.csv (Saturday checkpoints to 28 Nov), scrum/sprint CSVs. Excel workbook was delivered with Week 1 report (your_files), not in repo (binary cannot go via snapshot). | — |
-| Wireframes for all screens | Done | docs/wireframes.md: 18 screens (8 Customer, 5 Host, 3 Admin, 2 Shared), each with primary action, error + empty state | — |
-| Component + deployment diagrams | Done | docs/architecture.md; deployment diagram matches Bicep resources (VMSS/LB/Postgres/Blob/Key Vault/Insights) | — |
-| README: company, agent names, contributions, Journal link, Sheet/board link | Done | README.md: StayNest (Team 3), 4 agents + features, contributions in feature-breakdown + frontend-breakdown, Journal = docs/journal/, Tracker = tracking/ | — |
-| Everyone gets API + DevOps + deployment | Partial (code) / Done (split) | Core API per agent (PR 9), frontend piece per agent (PR 12), DevOps story per agent US29-US32 (In Progress: templates/CI/local, live pending). Split is real in code; live deployment proof per agent is blocked on the Azure approval above. | Per-agent test files (PR 14) |
-| Incremental commits, collaborative, Thu/Fri/Sat | Honest note | PRs 1-13 are incremental and per-feature, but all real pushes are 2026-11-04, not spread over Oct-Nov Thu/Fri/Sat. Commits are NEVER backdated in this repo — backdating would fake history. Journals separate planned weeks (Oct-Nov) from actual repo dates (Nov). PR 14 uses 4 separate commits, one per agent's test file, to restore per-agent commit visibility. | git log |
-
-## Gaps that remain (do not close without the stated input)
-1. **Live Azure URL (US27) + live deployment proofs (US29-US32, US04):** need Vin's explicit approval for a specific paid Azure deployment. No account was created.
-2. **Google Maps geocoding:** needs a Maps API key (VITE_GOOGLE_MAPS_KEY). No key committed.
-3. **Frontend unit tests:** frontend is verified by build + API tests + manual demo, not by committed component tests. Adding Vitest/jsdom component tests is the next test step if a grader requires it.
-4. **Weekly journals per calendar week:** sprint journals cover the same work grouped by sprint. One file per week (Weeks 2-9) can be split out from them on request, without changing any facts.
-5. **Blob photo/video upload endpoint:** host photo/video URLs are accepted; live Blob upload is a template item, blocked on (1).
+1. **Google address search:** only selected when a Google key is configured; no key is committed or available in this run.
+2. **OpenStreetMap/Nominatim:** API/provider boundaries and OSM URLs are tested with deterministic doubles. Live Nominatim and tile availability are external and were not used as a pass condition.
+3. **Azure:** paid live provisioning and a deployed public URL are outside task 4.2 and remain unverified.
+4. **Contrast:** no automated contrast engine is installed; WCAG contrast remains a manual audit item.

@@ -1,0 +1,68 @@
+/* StayNest design tokens — see docs/design-system.md.
+   Tokens only: no component or page rules. Import before styles.css. */
+:root {
+  /* Color — "harbor" palette. Contrast ratios are against the paired surface. */
+  --sn-ink: #12272d;            /* body text on surface: 14.9:1 */
+  --sn-ink-muted: #4a5f66;      /* secondary text on surface: 6.4:1 */
+  --sn-surface: #ffffff;
+  --sn-surface-soft: #f1f5f5;   /* panels, search bar, table stripes */
+  --sn-surface-sunk: #e4ecec;
+  --sn-line: #c5d2d4;           /* decorative borders */
+  --sn-line-strong: #6f858b;    /* input/control borders: 3.9:1 (>=3:1 for UI) */
+  --sn-primary: #0b6169;        /* tide teal; white text on it: 7.1:1 */
+  --sn-primary-hover: #084a50;
+  --sn-primary-tint: #d9eeee;
+  --sn-accent: #f2b134;         /* marigold: ratings, "booked today"; use --sn-ink text on it */
+  --sn-accent-ink: #12272d;
+  --sn-success: #1b6a38;        /* 6.2:1 on white */
+  --sn-success-tint: #dff2e5;
+  --sn-warning: #8a5a00;        /* 5.6:1 on white */
+  --sn-warning-tint: #fff0cc;
+  --sn-danger: #b3261e;         /* 6.5:1 on white */
+  --sn-danger-tint: #fde7e5;
+  --sn-focus: #0b6169;
+  --sn-focus-halo: #ffffff;
+
+  /* Typography — system stacks only (no external font loading). */
+  --sn-font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --sn-font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --sn-text-xs: 0.8125rem; --sn-text-sm: 0.875rem; --sn-text-base: 1rem;
+  --sn-text-lg: 1.25rem; --sn-text-xl: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
+  --sn-text-2xl: clamp(2rem, 1.4rem + 2.6vw, 3.25rem);
+  --sn-leading-body: 1.55; --sn-leading-tight: 1.15;
+  --sn-measure: 68ch;
+
+  /* Spacing (4px base) */
+  --sn-space-1: 0.25rem; --sn-space-2: 0.5rem; --sn-space-3: 0.75rem;
+  --sn-space-4: 1rem; --sn-space-5: 1.5rem; --sn-space-6: 2rem;
+  --sn-space-7: 3rem; --sn-space-8: 4.5rem;
+
+  /* Shape & elevation — radius scales with element size */
+  --sn-radius-sm: 6px; --sn-radius-md: 10px; --sn-radius-lg: 18px; --sn-radius-pill: 999px;
+  --sn-shadow-rest: 0 1px 2px rgb(18 39 45 / 0.10);
+  --sn-shadow-raised: 0 4px 14px rgb(18 39 45 / 0.14);
+  --sn-shadow-overlay: 0 14px 38px rgb(18 39 45 / 0.22);
+
+  /* Interaction */
+  --sn-target-min: 44px;        /* minimum touch/click target */
+  --sn-motion-fast: 120ms; --sn-motion-base: 220ms;
+  --sn-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* Layout */
+  --sn-page-max: 1200px; --sn-gutter: clamp(1rem, 4vw, 2rem);
+  --sn-bp-sm: 600px; --sn-bp-md: 900px; --sn-bp-lg: 1200px; /* reference for @media */
+}
+
+/* Shared accessibility primitives that pages can rely on. */
+:focus-visible {
+  outline: 3px solid var(--sn-focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--sn-focus-halo);
+}
+.sn-visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}

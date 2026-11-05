@@ -31,9 +31,13 @@ def get_current_user(authorization: str | None = Header(default=None), store: In
         raise ApiError("UNAUTHORIZED", "Missing Bearer token")
     try:
         payload = decode_token(authorization[7:])
+        user_id = int(payload.get("sub"))
     except Exception:
         raise ApiError("UNAUTHORIZED", "Invalid or expired token")
-    user = next((u for u in store.users if u.id == payload.get("sub")), None)
+    # Always resolve authorization against the persisted user record. The
+    # token's role claim is informational; a stale or forged claim must never
+    # grant a role that the stored account does not have.
+    user = next((u for u in store.users if u.id == user_id), None)
     if not user:
         raise ApiError("UNAUTHORIZED", "User not found")
     return user
